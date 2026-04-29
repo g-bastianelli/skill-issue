@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "prepare": "git config core.hooksPath .githooks"
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "lefthook": "*"
   }
 }
