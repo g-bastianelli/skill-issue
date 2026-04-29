@@ -52,7 +52,7 @@ The Codex runtime is a native Codex skill. It delegates exploration to Codex's b
 Add the `skill-issue` marketplace in Claude Code:
 
 ```
-/plugin marketplace add github:g-bastianelli/skill-issue
+/plugin marketplace add g-bastianelli/skill-issue
 ```
 
 Then install the plugin:
