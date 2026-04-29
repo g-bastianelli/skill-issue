@@ -47,33 +47,9 @@ The Claude Code runtime keeps a named `explorer` agent.
 
 The Codex runtime is a native Codex skill. It delegates exploration to Codex's built-in `explorer` subagent when available and falls back to local read-only discovery when subagents are unavailable.
 
-## Claude Code installation
+## Install
 
-```
-/plugin marketplace add g-bastianelli/skill-issue
-/plugin install react-monkey
-```
-
-## Codex CLI installation
-
-```
-codex plugin marketplace add g-bastianelli/skill-issue
-```
-
-Then open Codex and install `react-monkey` from the plugin browser:
-
-```text
-/plugins
-```
-
-For local development from this repository, restart Codex and install `react-monkey` from the repo marketplace.
-
-Or manually copy the plugin from a local clone:
-
-```bash
-mkdir -p ~/.codex/plugins
-cp -R ./react-monkey/codex ~/.codex/plugins/react-monkey
-```
+See [`skill-issue`](../README.md#install) for Claude Code and Codex installation.
 
 ## Trigger
 
