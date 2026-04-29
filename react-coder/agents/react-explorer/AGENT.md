@@ -27,9 +27,9 @@ Search for design system folders:
 find "$PROJECT_ROOT" -maxdepth 4 -not -path "*/node_modules/*" -type d \( -name "design-system" -o -name "ds" -o -name "ui" -o -name "components" \) 2>/dev/null | head -20
 ```
 
-If found:
-- Read the tokens file:
+If found, assign the first result to DS_FOLDER, then read its tokens file:
 ```bash
+# Replace $DS_FOLDER with the path found above
 find "$DS_FOLDER" \( -name "tokens.ts" -o -name "tokens.css" -o -name "theme.ts" -o -name "variables.css" \) | head -3
 ```
 Extract spacing, color, typography token names.
