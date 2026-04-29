@@ -1,12 +1,12 @@
-# react-coder
+# react-monkey
 
 React implementation specialist with parallel codebase exploration.
 
 ## What it does
 
-The `react-coder` skill auto-invokes when you work on React components, hooks, or pages (`.tsx`/`.jsx` files). It:
+The `react-monkey:implement` skill auto-invokes when you work on React components, hooks, or pages (`.tsx`/`.jsx` files). It:
 
-1. Spawns a parallel exploration agent (`react-explorer`) to discover your design system, data fetching patterns, and surrounding code — before writing a single line
+1. Spawns a parallel exploration agent (`react-monkey:explorer`) to discover your design system, data fetching patterns, and surrounding code — before writing a single line
 2. Plans the folder structure (folder tree mirrors JSX tree)
 3. Implements components following 5 strict architectural rules
 4. Runs lint and typecheck using your project's toolchain
@@ -24,9 +24,9 @@ The `react-coder` skill auto-invokes when you work on React components, hooks, o
 Add to your `marketplace.json`:
 
 ```json
-{ "name": "react-coder", "source": "./react-coder", "category": "productivity" }
+{ "name": "react-monkey", "source": "./react-monkey", "category": "productivity" }
 ```
 
 ## Trigger
 
-Auto-invokes on any React work. Also triggered by `/react-coder`.
+Auto-invokes on any React work. Also triggered by `/react-monkey:implement`.
