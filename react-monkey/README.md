@@ -1,5 +1,7 @@
 # react-monkey
 
+![react-monkey](./assets/banner.png)
+
 React implementation specialist with parallel codebase exploration.
 
 ## What it does
@@ -18,6 +20,20 @@ The `react-monkey:implement` skill auto-invokes when you work on React component
 3. **IDs-only props** — no domain objects in props; components fetch their own data
 4. **Shared data via select hooks** — siblings share a colocated hook, no extra requests
 5. **Split large components into subfolders** — max ~80 lines per component
+
+## Installation
+
+Add the `skill-issue` marketplace in Claude Code:
+
+```
+/plugin marketplace add github:g-bastianelli/skill-issue
+```
+
+Then install the plugin:
+
+```
+/plugin install react-monkey
+```
 
 ## Trigger
 
