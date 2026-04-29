@@ -30,13 +30,15 @@ Mark task "Explore codebase context" as `in_progress`.
 Use the `Agent` tool to discover design system, data fetching, and surrounding code **in parallel** before writing a single line of code:
 
 - **subagent_type:** `react-explorer`
-- **prompt:** Send a message in this format:
+- **prompt:** Send a message in this format (both paths must be absolute):
   ```
   PROJECT_ROOT: /absolute/path/to/project/root
-  TARGET: relative/path/to/target/component.tsx
+  TARGET: /absolute/path/to/target/component.tsx
   ```
 
-Wait for the agent's report. Use it as the source of truth for steps 3-5. Mark task "Explore codebase context" as `completed`.
+If the target component does not exist yet (new file), provide the absolute path where it will be created. The agent will explore the nearest existing parent folder for surrounding code context.
+
+Wait for the agent's report. Use it as the source of truth for steps 3-5. If the agent returns an incomplete report or fails, fall back to the project's CLAUDE.md conventions and proceed with manual discovery. Mark task "Explore codebase context" as `completed`.
 
 ### Step 3 — Plan the folder structure
 
@@ -50,13 +52,17 @@ Mark task "Plan folder structure" as `in_progress`.
 
 If you create files at the wrong level and need to move them later, you have already failed this step.
 
-Mark task "Plan folder structure" as `completed`.
+Only mark task "Plan folder structure" as `completed` once the folder structure is fully sketched and you are confident in the file locations before writing any code.
 
 ### Step 4 — Implement following ALL rules below
 
 Mark task "Implement components" as `in_progress`.
 
-Write the component(s), hook(s), and type(s). Use the design system components and tokens from the explorer report. Use the data fetching patterns from the explorer report. Before writing any helper function, grep the codebase for it in shared libs — never reimplement what already exists. Then verify every rule in the checklist.
+Write the component(s), hook(s), and type(s). Use the design system components and tokens from the explorer report. Use the data fetching patterns from the explorer report.
+
+**Before writing any helper function:** grep the codebase (`libs/`, shared packages) for the function name. Never reimplement what already exists in a shared library.
+
+Then verify every rule in the checklist.
 
 Mark task "Implement components" as `completed`.
 
@@ -398,9 +404,3 @@ Go through EVERY item. If any fails, fix it before delivering.
 16. **No raw HTML form elements** — uses DS components (Select, Input, etc.) instead
 17. **Modal/dialog open state** — if the modal is shareable or navigable, use search params instead of `useState`
 
-## Context
-
-This is a Claude Code plugin. The skill is the main entry point — it orchestrates the workflow for implementing React components. The key improvements over the original skill are:
-1. `TaskCreate` calls at Step 0 for progress visibility
-2. Steps 2+3+4 (discovery) replaced by a single `react-explorer` agent spawn
-3. A note in Step 4 to grep for existing utilities before writing helpers (restoring a rule from the original skill)

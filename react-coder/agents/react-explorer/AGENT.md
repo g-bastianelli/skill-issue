@@ -57,10 +57,12 @@ Read those files. Extract:
 
 ## 3. Surrounding Code Discovery
 
-Given the target component path, list siblings:
+Given the target component path (TARGET is an absolute path), list siblings:
 ```bash
 find "$(dirname "$TARGET")" -maxdepth 1 \( -name "*.tsx" -o -name "*.ts" \) | sort
 ```
+
+If the target directory does not exist yet (new component), use `dirname` on the nearest existing parent folder to find sibling context.
 
 Then find shared hooks and types nearby:
 ```bash
