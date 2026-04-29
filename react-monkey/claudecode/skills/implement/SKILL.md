@@ -1,5 +1,5 @@
 ---
-name: implement
+name: react-monkey:implement
 description: Use when creating, refactoring, or implementing React components, hooks, or pages — including .tsx/.jsx files, component trees, data fetching hooks, and UI layouts
 ---
 
