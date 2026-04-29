@@ -11,7 +11,7 @@ function isStatuslineConfigured() {
   try {
     const settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
     const cmd = settings?.statusLine?.command || '';
-    return cmd.includes('saucy-status');
+    return PLUGIN_ROOT ? cmd.includes(`${PLUGIN_ROOT}/hooks/statusline.sh`) : cmd.includes('saucy-status');
   } catch (e) {
     return false;
   }
