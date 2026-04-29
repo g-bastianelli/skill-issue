@@ -57,16 +57,24 @@ The Codex runtime is a native Codex skill. It delegates exploration to Codex's b
 ## Codex CLI installation
 
 ```
-$skill-installer install github.com/g-bastianelli/skill-issue/react-monkey/codex
+codex plugin marketplace add g-bastianelli/skill-issue
 ```
 
-Or manually from a local clone:
+Then open Codex and install `react-monkey` from the plugin browser:
+
+```text
+/plugins
+```
+
+For local development from this repository, restart Codex and install `react-monkey` from the repo marketplace.
+
+Or manually copy the plugin from a local clone:
 
 ```bash
-mkdir -p ~/.codex/skills
-cp -R ./react-monkey/codex ~/.codex/skills/react-monkey
+mkdir -p ~/.codex/plugins
+cp -R ./react-monkey/codex ~/.codex/plugins/react-monkey
 ```
 
 ## Trigger
 
-Auto-invokes on React component, hook, or page work. Also triggered by `/react-monkey:implement` in Claude Code or `$implement` in Codex.
+Auto-invokes on React component, hook, or page work. Also triggered by `/react-monkey:implement` in Claude Code or `$react-monkey:implement` in Codex.
