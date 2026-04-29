@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-FLAG="$HOME/.claude/.saucy-status"
+PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+FLAG="$PLUGIN_ROOT/data/.state"
 
 if [ ! -e "$FLAG" ] || [ -L "$FLAG" ]; then
   exit 0
@@ -18,8 +19,6 @@ case "$MODE" in
   saucy|gooning) ;;
   *) exit 0 ;;
 esac
-
-PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MSG=$(node -e "
   const fs = require('fs');
   const data = JSON.parse(fs.readFileSync('$PLUGIN_ROOT/data/messages.json', 'utf8'));
