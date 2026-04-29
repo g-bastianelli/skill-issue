@@ -1,5 +1,5 @@
 ---
-name: react-coder
+name: implement
 description: Use when creating, refactoring, or implementing React components, hooks, or pages — including .tsx/.jsx files, component trees, data fetching hooks, and UI layouts
 ---
 
@@ -25,11 +25,11 @@ Mark task "Explore codebase context" as `in_progress`.
 - Read the project's CLAUDE.md (if it exists) to learn project-specific conventions, entity patterns, commands, and dependencies.
 - Clarify which component/feature to implement and where it belongs in the folder tree.
 
-### Step 2 — Spawn the react-explorer agent
+### Step 2 — Spawn the explorer agent
 
 Use the `Agent` tool to discover design system, data fetching, and surrounding code **in parallel** before writing a single line of code:
 
-- **subagent_type:** `react-explorer`
+- **subagent_type:** `explorer`
 - **prompt:** Send a message in this format (both paths must be absolute):
   ```
   PROJECT_ROOT: /absolute/path/to/project/root
