@@ -68,63 +68,22 @@ Linear MCP naming quirk: when **reading** an issue, the current status comes bac
    - Call `mcp__claude_ai_Linear__save_issue({id: <issue.id>, stateId: <started-id>})` **without confirmation** (the user explicitly authorized this).
    - Voice: "issue is now In Progress 👑 (was `<prior status.name>`)"
 
-## Step 3 — Dispatch the gooner (subagent)
+## Step 3 — Dispatch the gooner
 
-Dispatch a subagent of type `general-purpose` with the prompt below. The gooner is **read-only** — it must never call `mcp__claude_ai_Linear__save_*` tools.
+Use the `Agent` tool to spawn the dedicated `linear-simp:gooner` subagent. It runs in its own context (read-only Linear MCP + Read + Glob), keeping the main context lean.
 
-**Subagent prompt:**
+- **subagent_type:** `gooner`
+- **prompt:** send a message in this format (both values absolute):
 
 ```
-You are the gooner — a read-only scout for the linear-simp plugin. Your boss needs a structured brief on Linear issue <ID>.
-
-Your mission:
-1. Fetch the issue: mcp__claude_ai_Linear__get_issue({id: "<ID>"})
-2. List comments: mcp__claude_ai_Linear__list_comments({issueId: "<ID>"})
-3. The issue description can be in any format (STAR, SDD, plain text, bullets — doesn't matter). Extract whatever's useful.
-4. Find every path-like token in description and comments (backticks first, then heuristics like /[a-zA-Z0-9_./-]+\.[a-z0-9]{1,5}/). For each:
-   - If the path exists in the repo, read it and summarize in 1 line what it currently does.
-   - If not, mark "to be created".
-5. Detect ambiguities: literal TBDs, vague phrases ("appropriate", "as needed"), internal contradictions.
-6. Return a brief in markdown, under 500 words, EXACTLY in this format:
-
-## Brief from gooner — <id>
-
-**Issue** : <id> — <title>
-**Project** : <project-name> · **URL** : <url>
-
-**Goal** (1 sentence) : <synthesis> | _unclear_
-
-**Context**
-<2-3 lines: why, architecture touched, services involved> | _unclear_
-
-**Files referenced** (existing state)
-- `path/x.ts` — currently does Y
-- `path/y.ts` — does not exist yet
-- (or "none referenced — to be discovered")
-
-**Constraints**
-- <stack, legacy constraints, perf, compliance — explicit or inferred>
-- (or _unclear_)
-
-**Acceptance criteria** (verifiable)
-- <bullet 1>
-- (or _unclear_)
-
-**Non-goals** / out of scope
-- <explicitly excluded>
-- (or _unclear_)
-
-**Edge cases & ambiguities detected**
-- <vague points, contradictions>
-
-**Suggested clarifying questions for boss**
-- <prioritized by which _unclear_ field is most blocking>
-
-CRITICAL: never invent missing info. If something is not in the issue/comments/files, mark it _unclear_ and add it to the questions list. You are read-only — DO NOT call mcp__claude_ai_Linear__save_issue, save_comment, or any write tool.
+ISSUE_ID: <id>
+PROJECT_ROOT: <git rev-parse --show-toplevel result>
 ```
 
-When the subagent returns, present the brief to the user prefixed with one short simp line:
+The gooner returns a SDD-formatted brief (Goal/Context/Files/Constraints/Acceptance/Non-goals/Edges/Questions). When it does, present the brief to the user prefixed with one short simp line:
 > "the gooner came back king, here's what we got 🥺"
+
+Do not modify the gooner's output. The brief is the brief.
 
 ## Step 4 — Hand-off
 
