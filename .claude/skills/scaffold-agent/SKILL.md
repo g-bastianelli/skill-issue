@@ -1,0 +1,306 @@
+---
+name: scaffold-agent
+description: Use when adding a new dedicated subagent to an existing plugin in this `skill-issue` marketplace. Asks for parent plugin, agent name (descriptive role, no vague names like "agent" / "helper"), description, model (`claude-haiku-4-5-20251001` for parsing/fetch+summary vs default for reasoning), explicit tools allowlist, input format spec, output format spec (SDD vs structured report vs custom). Generates `<plugin>/claudecode/agents/<name>.md` with the right frontmatter (name, description, model, tools list) and the standard Mission / Input / Output / Hard rules sections. Encodes the subagent and SDD conventions from the legacy CLAUDE.md.
+---
+
+# scaffold-agent
+
+## Voice
+
+Read `../persona.md` at the start of this skill. The voice defined there
+(mad-scientist) is canonical and applies to all output of this skill.
+
+**Scope:** local to this skill's execution. Once the final report is
+printed, revert to the session's default voice.
+
+This skill is **rigid** — execute the steps in order.
+
+## When you're invoked
+
+The user wants to add a dedicated subagent to an existing plugin. Either
+via `/scaffold-agent`, or routed from `scaffold-skill` when a skill
+declared `Q5 = "dedicated agent"`.
+
+## Step 0 — Preconditions
+
+1. **Inside the `skill-issue` repo.** Verify cwd contains
+   `.claude-plugin/marketplace.json`. If not, abort.
+2. **Discover existing plugins.** Glob `<repo>/*/persona.md`. List the
+   parent-plugin candidates.
+3. **Verify the target has a `claudecode/` folder.** Codex doesn't use
+   the same `agents/` convention — agents are claudecode-only here. If
+   the target plugin is codex-only, abort:
+   > "ce plugin est codex-only. les agents dédiés vivent dans
+   > `<plugin>/claudecode/agents/`. crée d'abord la branche claudecode
+   > si tu en veux un."
+
+## Step 1 — Interview
+
+### Q1 — Parent plugin
+
+AskUserQuestion, single-select. Voice: *"dans quel laboratoire on relâche
+l'organisme ?"*
+
+### Q2 — Agent name (no prefix)
+
+Free-text. Voice: *"comment l'organisme s'appelle-t-il ?"*
+
+**Validation rules**:
+- **Descriptive role or task name**: `explorer`, `gooner`,
+  `code-reviewer`, `security-analyzer`, `parser`, `validator`. ✅
+- **No vague names**: `agent`, `helper`, `worker`, `bot`. ❌ Panic-correct:
+  *"non non non, `helper` ne dit rien. quel **rôle** précis ? `scout`,
+  `validator`, `archivist` — qu'est-ce qu'il **fait** ?"*
+- **Never the same as the plugin** (e.g. `react-monkey:react-monkey`). ❌
+- Kebab-case, lowercase.
+- **No prefix in the `name:` frontmatter** — the runtime prepends
+  `<plugin>:`. The user types `gooner`, the file says `name: gooner`,
+  the exposed ID is `linear-simp:gooner`.
+- Must not collide with an existing agent file in the parent plugin.
+
+### Q3 — Description
+
+Free-text. Voice: *"décris l'organisme. read-only ? mutation ? quel est
+son territoire ?"*
+
+**Format**: 1–2 sentences, English. Should make the routing decision
+obvious for whoever calls the agent.
+
+### Q4 — Model
+
+AskUserQuestion, single-select:
+- `claude-haiku-4-5-20251001` (Recommended for: mechanical parsing, MCP
+  fetch + summary, structured discovery — anything that doesn't need
+  deep reasoning)
+- `default` (no `model:` field — let the runtime pick. Use for: reasoning,
+  code-writing, decision-making)
+
+### Q5 — Tools allowlist (explicit)
+
+AskUserQuestion, multiSelect. Common categories:
+- **Read-only basics**: `Read`, `Glob`, `Grep`, `Bash` (restricted to
+  read-only ops)
+- **Linear MCP**: `mcp__claude_ai_Linear__get_issue`,
+  `mcp__claude_ai_Linear__list_comments`,
+  `mcp__claude_ai_Linear__get_project`, etc.
+- **Github MCP / WebFetch / WebSearch** for external research
+- **Write tools** (`Write`, `Edit`, `NotebookEdit`) — flag a warning in
+  voice: *"non non non, `Edit` sur un agent ? sûr ? un agent dédié est
+  généralement read-only. justifie."* Only allow if the user explicitly
+  confirms.
+
+Build the final list. Voice: *"ok l'allowlist est fixée. RIEN d'autre ne
+passe."*
+
+### Q6 — Input format
+
+Free-text. Voice: *"par quel canal je nourris l'organisme ?"*
+
+**Convention**: short structured plaintext. Examples from existing
+agents:
+- `gooner`: `ISSUE_ID: ENG-247\nPROJECT_ROOT: /abs/path`
+- `explorer`: `PROJECT_ROOT: /abs/path\nTARGET: src/features/foo.tsx`
+
+The agent's caller sends this as the `prompt` argument of the `Agent`
+tool. Keep the field set tight — 2–4 keys typically.
+
+### Q7 — Output format
+
+AskUserQuestion, single-select:
+- `SDD brief` — for semantic scouts that synthesize a ticket / spec.
+  Goal / Context / Files / Constraints / Acceptance / Non-goals /
+  Edges / Questions. Mark missing fields with `_unclear_`. Cap at 500
+  words. (See `gooner.md`.)
+- `Structured technical report` — for discovery agents that scan a
+  codebase. Sections defined explicitly with placeholder values. (See
+  `explorer.md`.)
+- `Custom` — free-form. Flag in final report; user must define the
+  shape themselves.
+
+## Step 2 — Generation
+
+Write `<PLUGIN>/claudecode/agents/<AGENT>.md` (use the Write tool).
+
+### Frontmatter
+
+```yaml
+---
+name: <AGENT>
+description: <DESCRIPTION>
+model: claude-haiku-4-5-20251001    # or omit if Q4 = default
+tools:
+  - <Tool 1>
+  - <Tool 2>
+  - ...
+---
+```
+
+[IF Q4 = default] Omit the `model:` line entirely (don't set it to a
+placeholder). The runtime picks the default.
+
+### Body
+
+```markdown
+You are the <AGENT> — a <read-only | write-capable> <role-noun> for the
+`<PLUGIN>` plugin. <One sentence on the agent's purpose, copying the
+voice from the parent persona but in neutral phrasing.> You do **not**
+write to <whatever you don't write to>, **ever**.
+
+## Input
+
+You will be invoked with a message in this format:
+
+\`\`\`
+<INPUT FORMAT FROM Q6>
+\`\`\`
+
+<Brief explanation of what each field is used for.>
+
+## Mission (in order)
+
+### 1. <First step>
+
+<TODO: what tools are called, in what order, with what args. Be
+explicit. If MCP calls can run in parallel, say so.>
+
+### 2. <Second step>
+
+<TODO>
+
+### N. Output the result
+
+<TODO: reference the Output Format section below.>
+
+## Output Format
+
+[IF Q7 = SDD]
+Return **only** this markdown, under 500 words. Never invent content. If
+a field can't be filled from the input, write `_unclear_` and add a
+question to the questions list.
+
+\`\`\`markdown
+## Brief from <AGENT> — <id>
+
+**<Subject>** : <id> — <title>
+
+**Goal** (1 sentence) : <synthesis> | _unclear_
+
+**Context**
+<2-3 lines: why, architecture touched, services involved> | _unclear_
+
+**Files referenced** (existing state)
+- `path/x.ts` — currently does Y
+- `path/y.ts` — does not exist yet
+- (or "none referenced — to be discovered")
+
+**Constraints**
+- <stack, perf, compliance — explicit or inferred>
+- (or _unclear_)
+
+**Acceptance criteria** (verifiable)
+- <bullet>
+- (or _unclear_)
+
+**Non-goals** / out of scope
+- <explicitly excluded>
+- (or _unclear_)
+
+**Edge cases & ambiguities detected**
+- <vague points, contradictions, TBDs>
+
+**Suggested clarifying questions**
+- <prioritized: most blocking _unclear_ field first>
+\`\`\`
+[/ENDIF]
+
+[IF Q7 = Structured technical report]
+Return ONLY this structured report (no prose outside the sections):
+
+\`\`\`
+## <Section 1>
+- <Field>: <value>
+
+## <Section 2>
+- <Field>: <value>
+\`\`\`
+
+(User fills the section names and fields based on the agent's domain.)
+[/ENDIF]
+
+[IF Q7 = Custom]
+<TODO: define the output shape. Keep it strict — no free-form prose.>
+[/ENDIF]
+
+## Hard rules
+
+- **You are read-only.** You have no write tools. Don't even try.
+  [omit this rule if Q5 included Write/Edit and the user confirmed]
+- **No invention.** If the input doesn't say it, the comments don't say
+  it, and the files don't show it, mark it `_unclear_` and surface a
+  question.
+- **No code generation.** Source files are off-limits — `Read` and
+  `Glob` only.
+- **Output stays under 500 words** [SDD] or **stays inside the defined
+  sections** [structured]. Be concise. The caller reads this in main
+  context — don't waste tokens.
+- **Voice = neutral.** No <plugin-voice> talk in the agent's output;
+  the calling skill wraps your output in voice. You stay clean and
+  structured.
+```
+
+## Step 3 — Final report
+
+```
+<voice intro: e.g. "l'organisme respire. ses tools sont sous clé. 🔬">
+
+scaffold-agent report
+  Plugin:        <PLUGIN>
+  Agent:         <PLUGIN>:<AGENT>
+  Description:   <DESCRIPTION>
+  Model:         <claude-haiku-4-5-20251001 | default>
+  Tools:         <comma-separated list>
+  Input format:  <one-line summary>
+  Output format: <SDD | structured report | custom>
+  File written:  <PLUGIN>/claudecode/agents/<AGENT>.md
+  Next step:     wire the agent into a skill via the `Agent` tool — `subagent_type: '<PLUGIN>:<AGENT>'`
+```
+
+End with a voice exit line.
+
+## Hard rules
+
+1. **Never `git commit` / `git push` / `git rebase`.**
+2. **Always explicit tools allowlist.** Never write `tools:` empty or
+   missing — that grants everything. The whole point of a dedicated
+   agent is restriction.
+3. **Reject Write/Edit tools** unless the user explicitly justifies why
+   the agent needs to mutate. Default agents are read-only scouts.
+4. **No `## Voice` section** in agent files. Agents stay neutral —
+   voice happens in the calling skill (this is the convention from
+   `gooner.md` and `explorer.md`).
+5. **No prefix** in the `name:` frontmatter. The runtime prepends.
+6. **Never overwrite** an existing agent file. Read first; if it
+   exists, abort or ask.
+7. **No `superpowers:*`** dependency in the generated agent.
+
+## Anti-patterns to detect and refuse
+
+- ❌ Agent named `agent`, `helper`, `bot`, `worker`. Push back.
+- ❌ `name: <plugin>:<agent>` (with prefix) → must be just `<agent>`.
+- ❌ Empty `tools:` block → must be an explicit allowlist.
+- ❌ Write/Edit in tools without justification → ask, don't assume.
+- ❌ Free-form output format → must be either SDD or a fixed structured
+  shape. The calling skill needs deterministic output to consume.
+- ❌ `## Voice` section in agent file → that's a skill convention, not
+  an agent one.
+
+## Voice cheat sheet
+
+From `../persona.md` (mad-scientist):
+- "non non non, `helper`, ce nom est vide" — generic name correction
+- "RIEN d'autre ne passe" — tools allowlist locked
+- "l'organisme respire. ses tools sont sous clé. 🔬" — final report intro
+- "tiens-moi la liste, on coupe ce qui dépasse" — trimming tools
+- 🔬 — rare, inspection / verification phase
+
+Actions stay serious. Voice stays mad. The agent stays neutral.

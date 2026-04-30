@@ -2,7 +2,12 @@
 
 Personal Claude Code (sometimes Codex) plugin marketplace. Three plugins right now: `saucy-status`, `react-monkey`, `linear-simp`.
 
-When creating a new plugin/skill/agent, stay within these defaults. Any deviation needs a real reason.
+> **Pour créer un nouveau plugin / skill / agent**, invoque les skills locaux :
+> `/scaffold-plugin`, `/scaffold-skill`, `/scaffold-agent`. Ils embarquent
+> toutes les conventions techniques (frontmatter, structure de dossiers,
+> manifest, hooks, format SDD, naming rules, anti-patterns) et génèrent
+> les fichiers au bon endroit. Ce CLAUDE.md ne les redocumente plus —
+> les skills sont la source de vérité pour le scaffolding.
 
 ---
 
@@ -18,16 +23,7 @@ New plugins follow this energy:
   - `react-monkey` → see `react-monkey/persona.md`
   - `linear-simp` → see `linear-simp/persona.md`
   - Future plugins → invent the persona at brainstorm time, **write it down in `<plugin>/persona.md`**, and apply it consistently across the plugin's skills. Do not redeclare the voice in this CLAUDE.md.
-- **Reports follow the voice**. Example from `linear-simp:greet`:
-  ```
-  linear-simp:greet report
-    Issue:        ENG-247 — fix the logging
-    Status:       In Progress (was Backlog)
-    Branch:       g-bastianelli/eng-247-fix-logging (created)
-    Brief:        delivered (gooner)
-    Hand-off:     plan
-  ```
-  The structure is serious, the surrounding lines ("the gooner came back king 🥺", "boss is boss 😔") are brainrot. Same skill, same voice end-to-end.
+- **Reports follow the voice**. The structure stays plain, the surrounding 1-2 lines are brainrot. Same skill, same voice end-to-end.
 - **Hard rule**: actions stay serious, voice stays brainrot. No fantasy side-effects, no joke commits, no "lol whoops" failure modes. Only the *strings* are fun.
 - **Use emojis sparingly**. 🥺 / 👑 / 😔 / 🔥 land. Anything more is over-emoji and feels AI-slop.
 
@@ -41,7 +37,7 @@ Rules:
 - The roulette **never modifies** any skill, agent, or plugin file. It only injects a session-level default voice.
 - Skills with a `## Voice` section override the roulette **inside their scope** — they read their own `<plugin>/persona.md` and apply that voice. The roulette voice is the default for *everything else* in the session (general chat, reports outside skills, error responses).
 - Disable for one session: `SKILL_ISSUE_PERSONA=off claude`.
-- Add a new persona to the pool: drop a `persona.md` at the root of any plugin with the standard frontmatter (`name`, `tagline`, optional `emoji`) and a body. The hook auto-discovers via `<repoRoot>/*/persona.md` glob.
+- Add a new persona to the pool: drop a `persona.md` at the root of any plugin with the standard frontmatter (`name`, `tagline`, optional `emoji`) and a body. The hook auto-discovers via `<repoRoot>/*/persona.md` glob. (The local scaffold skills' shared persona at `.claude/skills/persona.md` is **not** in the pool — it's scoped to those skills only.)
 - Tests: `cd .claude/hooks/tests && bunx bun test` (the `.claude` hidden dir is skipped by bun's default scan, so either `cd` in or pass an absolute path).
 
 ---
@@ -57,188 +53,8 @@ Rules:
 
 ---
 
-## Naming conventions
+## Pre-push verification
 
-### Plugins
-Fun/absurd brainrot name that announces a theme: `saucy-status`, `react-monkey`, `linear-simp`. Cohesive marketplace family.
-
-### Skills
-Action verb or gerund describing what the skill does:
-- `implement`, `explore`, `greet`, `writing-plans`, `systematic-debugging`
-- No generic role names (`coder`, `helper`, `utils`)
-- **Codex**: `name:` in `SKILL.md` is short and **without** plugin prefix. The prefix comes from the plugin → `react-monkey` + `implement` = `$react-monkey:implement`.
-- **Claude Code**: `name:` in `SKILL.md` includes the **full** prefix (`name: react-monkey:implement`). Claude Code must never expose `/implement` alone.
-- The same capability can have two internal names depending on runtime, but the visible ID is always prefixed.
-
-### Agents
-Descriptive role or task name:
-- `explorer`, `gooner`, `code-reviewer`, `security-analyzer`
-- No vague names (`agent`, `helper`)
-- `name:` in frontmatter is **without** plugin prefix (the runtime adds it). Ex: `name: gooner` → exposed as `linear-simp:gooner`.
-
-### Resulting IDs
-```
-react-monkey:implement   ✅
-react-monkey:explorer    ✅
-linear-simp:greet        ✅
-linear-simp:gooner       ✅
-implement                ❌  (no visible ID without plugin prefix)
-react-monkey:coder       ❌  (generic role name for a skill)
-react-coder:react-coder  ❌  (plugin/skill duplicate)
-```
-
----
-
-## Plugin structure
-
-### Claude Code-only plugin
-```
-<plugin-name>/
-├── README.md                    # English, banner at top, install snippet
-├── assets/
-│   └── banner.png               # 3:1 banner, embedded in README
-└── claudecode/
-    ├── .claude-plugin/
-    │   └── plugin.json          # declares hooks and metadata
-    ├── hooks/                   # Node ESM .mjs scripts, optional
-    ├── skills/<skill-name>/
-    │   └── SKILL.md             # frontmatter with prefixed name
-    ├── agents/                  # dedicated subagents, optional
-    │   └── <agent-name>.md
-    ├── tests/                   # bun test, optional
-    └── data/
-        └── .gitignore           # runtime state gitignored
-```
-
-### Cross-runtime plugin (Claude Code + Codex)
-See `react-monkey/` for the pattern: a `claudecode/` folder and a `codex/` folder, each complete and self-contained. Skills are bundled in both runtimes with the naming adjustments described above.
-
-### Marketplace registration
-Add an entry to root `.claude-plugin/marketplace.json`. Use **`git-subdir` source** so it's versionable:
-```json
-{
-  "name": "<plugin-name>",
-  "source": {
-    "source": "git-subdir",
-    "url": "https://github.com/g-bastianelli/skill-issue",
-    "path": "<plugin-name>/claudecode"
-  },
-  "category": "productivity" | "fun"
-}
-```
-Also add a row in the root `README.md` plugins table and an install snippet.
-
----
-
-## Architectural patterns
-
-### Hooks (start-of-session detection / state)
-- **`SessionStart`**: fires at startup. Reads branch, environment. Can output `additionalContext` to force a skill invocation.
-- **`UserPromptSubmit`**: fires on every prompt. To detect something **only on the first prompt**, use a state file with `awaiting_prompt: true` set at SessionStart, closed on the first prompt.
-- File pattern: `${CLAUDE_PLUGIN_ROOT}/data/state-<session_id>.json`.
-- **Anti re-trigger**: a `greeted: true` flag (or equivalent) once the skill has run.
-- **Lazy cleanup**: delete state files older than 7 days at SessionStart, best-effort, swallow exceptions.
-- **Stdin JSON**: Claude Code passes `{session_id, prompt, ...}` to the hook via stdin. Read with `fs.readFileSync(0, 'utf8')` then `JSON.parse`.
-- **`additionalContext` output**:
-  ```js
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: {
-      hookEventName: 'SessionStart' | 'UserPromptSubmit',
-      additionalContext: '<EXTREMELY-IMPORTANT>...</EXTREMELY-IMPORTANT>'
-    }
-  }))
-  ```
-
-### Subagents (context preservation)
-- **Always dispatch heavy work to a subagent** (MCP fetches, file reads, parsing). Main context only sees the synthesized result.
-- **Dedicated subagent** (`agents/<name>.md` file) when:
-  - The same worker is dispatched repeatedly with the same instructions
-  - You want a strict tools allowlist (e.g., read-only)
-  - The agent is reusable across skills
-- **Generic subagent** (`general-purpose` with prompt embedded in the SKILL.md) only for one-shot, very contextual cases.
-- **Explicit tools allowlist** in `tools:` frontmatter when restriction matters. Read-only example:
-  ```yaml
-  tools:
-    - mcp__claude_ai_Linear__get_issue
-    - mcp__claude_ai_Linear__list_comments
-    - Read
-    - Glob
-    - Bash
-  ```
-- **Right-sized model** in `model:` frontmatter:
-  - `claude-haiku-4-5-20251001` for mechanical parsing, fetch + summary
-  - Default model for reasoning, decisions, code-writing
-- **Standard input format** for the agent: short structured message (`ISSUE_ID: ...`, `PROJECT_ROOT: ...`).
-- **Strict output format**: defined in the frontmatter, no free-form prose.
-
-### Brief / spec format (input for AI agents)
-2025 standard = **Spec-Driven Development (SDD)**, not STAR. Sections:
-- **Goal** (1 sentence)
-- **Context** (why, architecture touched)
-- **Files referenced** (★ critical grounding)
-- **Constraints** (stack, perf, compliance)
-- **Acceptance criteria** (verifiable)
-- **Non-goals** (out of scope)
-- **Edge cases & ambiguities**
-- **Suggested clarifying questions**
-
-Missing fields → `_unclear_` + question. Never invent.
-
-Sources: Thoughtworks, GitHub, JetBrains, O'Reilly, Addy Osmani — all publish SDD as the 2025 standard for AI-agent-bound tickets. STAR (Situation/Task/Action/Result) is from behavioral interviews, sub-optimal for agents.
-
-### Persona / voice
-Brainrot voice cohesive within each plugin. **Source of truth: `<plugin>/persona.md`** at the plugin root (frontmatter `name`/`tagline`/`emoji` + body prose defining the voice). Every SKILL.md of the plugin opens with a `## Voice` section that points to that file via a relative path:
-
-```markdown
-## Voice
-
-Read `../../persona.md` (or `../../../persona.md` for nested skills) at the start of this skill. The voice defined there is canonical for this plugin and applies to all output of this skill.
-```
-
-Apply that voice in:
-- Skill output strings
-- Hook `additionalContext` messages
-- Agent input/output (kept neutral inside the agent, voice happens in the calling skill)
-- Final reports printed by skills
-
-**Actions stay serious. Voice stays brainrot.** The humor is in the strings only.
-
-The `persona.md` only defines the voice (tone, vocabulary, emoji palette, hard rule). Skill-specific strings (error messages, prompts, reports) stay in the SKILL.md as concrete *applications* of that voice — they don't redefine the voice.
-
-**Voice scope = the skill's execution.** A skill's voice applies *only while the skill runs*. Once a skill finishes (final report printed, hand-off menu returned to the user), revert to the session's default voice — set by the persona-roulette hook inside this repo, or the platform default outside. Every `## Voice` section in a SKILL.md must state this scope explicitly. Don't let a skill's voice bleed into the rest of the session.
-
-### Skill report format
-Skills that perform multiple actions (status changes, dispatches, branch ops) print a structured report at the end. Format:
-```
-<plugin>:<skill> report
-  <Field>:        <value> [(was <prior>)]
-  <Field>:        <value> [(<note>)]
-  ...
-```
-Wrap the report with one or two voice lines, but the report itself is plain. Example block from `linear-simp:greet`:
-```
-the gooner came back king 🥺
-
-linear-simp:greet report
-  Issue:        ENG-247 — fix the logging
-  Status:       In Progress (was Backlog)
-  Branch:       g-bastianelli/eng-247-fix-logging (created)
-  Brief:        delivered (gooner)
-  Hand-off:     plan
-```
-
----
-
-## Dev workflow for a new plugin/skill
-
-1. **Brainstorming** — naming (see Vibe), persona, scope.
-2. **SPEC** (optional) — colocate at `<plugin>/SPEC.md` if useful as a reference doc. Otherwise skip and go straight to plan.
-3. **PLAN** — `superpowers:writing-plans` is fine as a **dev tool**. The plan lives in `docs/superpowers/plans/...` during dev, **but is deleted before delivery**. No `superpowers:*` dependency must leak into the shipped plugin.
-4. **TDD** for any Node helper or non-trivial logic (`bun test`).
-5. **Subagent-driven dev** — dispatch a fresh subagent for each heavy task, keep the main context for coordination only.
-6. **Frequent commits**: one commit per logical step (`feat(<plugin>): scaffold...`, `feat(<plugin>): add state helper`, etc.). Co-author tag is not required.
-
-### Pre-push verification
 ```bash
 bunx bun test <plugin>/                    # all plugin tests pass
 (cd .claude/hooks/tests && bunx bun test)  # persona-roulette tests pass
@@ -247,20 +63,13 @@ node -e "JSON.parse(require('node:fs').readFileSync('.claude-plugin/marketplace.
 grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
 ```
 
-### Defaults
-- README in **English** (consistent with saucy-status, react-monkey, linear-simp).
-- Banner PNG at `<plugin>/assets/banner.png`, embedded at the top of the README via `![](./assets/banner.png)`. 3:1 ratio. Style aligned with the marketplace family (see existing banners).
-- License **MIT**.
-- `data/.gitignore` for runtime state files.
-- Squash-merge on `main` via GitHub PR (user workflow — no direct merge).
-
 ---
 
 ## Anti-patterns to avoid
 
+Global guidance — applies everywhere, not just at scaffold time:
+
 - ❌ Pollute main context with MCP fetches / massive reads → **always dispatch to a subagent**
-- ❌ Embed a long subagent prompt in a SKILL.md when it'll be reused → **dedicated agent in `agents/`**
-- ❌ Subagent without tools allowlist when it should be read-only → **list the tools explicitly**
 - ❌ STAR format for briefs targeting an agent → **SDD**
 - ❌ Linear (or any external service) mutations without user confirmation, unless explicitly authorized and documented
 - ❌ `git push`, `git commit`, `git rebase` silently executed by a skill → **never**
@@ -269,7 +78,7 @@ grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
 - ❌ Bypassing pre-commit hook with `--no-verify` → **never**
 - ❌ Corporate/neutral plugin names → **the brainrot is the brand**
 - ❌ Banner or README in mixed languages → **English everywhere**
-- ❌ Redeclaring a plugin's voice (vocabulary examples, emoji palette, tone description) in this CLAUDE.md → **the voice lives in `<plugin>/persona.md` exclusively**. CLAUDE.md only references the file. Two definitions = drift.
+- ❌ Redeclaring a plugin's voice in this CLAUDE.md → **the voice lives in `<plugin>/persona.md` exclusively**
 
 ---
 
@@ -281,4 +90,17 @@ grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
 | `react-monkey` | React implementation specialist with parallel exploration | — | `implement` | `explorer` | `react-monkey/persona.md` |
 | `linear-simp` | Linear issue detection at session start, SDD brief, devoted simp persona | SessionStart, UserPromptSubmit | `greet` | `gooner` | `linear-simp/persona.md` |
 
-Repo-level: `.claude/hooks/persona-roulette.mjs` picks a random `persona.md` at SessionStart for the current session's default voice (see "Persona Roulette" section above).
+Repo-level: `.claude/hooks/persona-roulette.mjs` picks a random `persona.md` at SessionStart for the current session's default voice (see "Persona Roulette" section above). Local scaffold skills live at `.claude/skills/{scaffold-plugin,scaffold-skill,scaffold-agent}/SKILL.md` with shared `mad-scientist` voice at `.claude/skills/persona.md`.
+
+---
+
+## Dev workflow recap
+
+1. **Brainstorming** — naming (see Vibe), persona, scope.
+2. **SPEC** (optional) — colocate at `<plugin>/SPEC.md` if useful as a reference doc.
+3. **PLAN** — `superpowers:writing-plans` is fine as a **dev tool**. Plan lives in `docs/superpowers/plans/` during dev, **deleted before delivery**. No `superpowers:*` dependency must leak into the shipped plugin.
+4. **Scaffold** — `/scaffold-plugin`, then `/scaffold-skill`, then `/scaffold-agent` as needed. The skills enforce the conventions by construction.
+5. **TDD** for any Node helper or non-trivial logic (`bun test`).
+6. **Subagent-driven dev** — dispatch a fresh subagent for each heavy task, keep the main context for coordination only.
+7. **Frequent commits**: one commit per logical step (`feat(<plugin>): scaffold...`, etc.). Co-author tag is not required.
+8. **Squash-merge** on `main` via GitHub PR (user workflow — no direct merge).
