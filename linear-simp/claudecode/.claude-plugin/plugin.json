@@ -1,0 +1,29 @@
+{
+  "name": "linear-simp",
+  "description": "Linear simp dévoué — détecte ton issue Linear au début de session, set In Progress, prépare un brief SDD pour pas que tu codes comme un zinzin. Voix brainrot/simp.",
+  "author": {
+    "name": "g-bastianelli"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-submit.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
