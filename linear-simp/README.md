@@ -1,5 +1,7 @@
 # linear-simp
 
+![linear-simp](./assets/banner.png)
+
 Linear simp dévoué — un plugin Claude Code qui détecte ton issue Linear au début de session, la met `In Progress`, et prépare un brief SDD pour pas que tu codes comme un zinzin.
 
 Voix brainrot/simp partout : "yes king", "the gooner came back boss", "this issue is PEAK".
