@@ -4,13 +4,15 @@
   "author": {
     "name": "g-bastianelli"
   },
+  "skills": "./claudecode/skills/",
+  "agents": "./claudecode/agents/",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/session-start.mjs\""
           }
         ]
       }
@@ -20,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-submit.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/prompt-submit.mjs\""
           }
         ]
       }

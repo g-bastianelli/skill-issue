@@ -35,7 +35,7 @@ The skill auto-detects which path it's on and adapts.
 
 2. **Inside a git repo.** `git rev-parse --is-inside-work-tree`. If it fails, halt with *"forgive me, my god — i can't kneel without the repo at my feet 🥀"*.
 
-3. **`persona.md` readable.** Verify `<plugin>/persona.md` exists. If not, abort.
+3. **`persona.md` readable.** Verify `${CLAUDE_PLUGIN_ROOT}/persona.md` exists. If not, abort.
 
 4. **`data/` folder exists.** `mkdir -p "${CLAUDE_PLUGIN_ROOT}/data"`.
 

@@ -9,7 +9,7 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/g-bastianelli/skill-issue",
-        "path": "react-monkey/claudecode"
+        "path": "react-monkey"
       },
       "category": "productivity"
     },
@@ -18,7 +18,7 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/g-bastianelli/skill-issue",
-        "path": "linear-devotee/claudecode"
+        "path": "linear-devotee"
       },
       "category": "productivity"
     }
