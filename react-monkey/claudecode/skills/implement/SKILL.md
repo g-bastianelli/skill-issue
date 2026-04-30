@@ -92,18 +92,6 @@ Mark task "Run checks" as `completed`.
 - Non-component helpers (constants, types, small pure functions) are OK in the same file.
 - If you need another component, **create a sibling file or folder**.
 
-```tsx
-// BAD — two components in one file
-function UserCard({ userId }: { userId: number }) { ... }
-const UserCardSkeleton = () => <div>...</div>;  // WRONG: second component
-
-// GOOD — separate files
-// UserCard.tsx
-function UserCard({ userId }: { userId: number }) { ... }
-// UserCardSkeleton.tsx
-function UserCardSkeleton() { ... }
-```
-
 ### Rule 2: Folder structure mirrors JSX tree
 
 The file tree must reflect the component render tree. If `A` renders `B`, `C`, `D`, then `A/` contains `B`, `C`, `D` as files or subfolders.
@@ -194,35 +182,6 @@ function TenantsPage() {
 }
 ```
 
-```tsx
-// BAD — parent checks child condition and fetches data
-function DealContacts({ dealId }: { dealId: number }) {
-  const { data } = useDealContacts(dealId);
-  return (
-    <div>
-      {data.contacts.map((contact) =>
-        contact.isActive ? (  // WRONG: parent checks child's condition
-          <ContactCard contact={contact} />  // WRONG: passes object
-        ) : null
-      )}
-    </div>
-  );
-}
-
-// GOOD — parent is layout only, child owns its logic
-function DealContacts({ dealId }: { dealId: number }) {
-  const { data } = useDealContacts(dealId);
-  return (
-    <div className="flex flex-col gap-md">
-      {data.contacts.map((contact) => (
-        <ContactCard key={contact.id} dealId={dealId} contactId={contact.id} />
-        // Child decides internally whether to render or return null
-      ))}
-    </div>
-  );
-}
-```
-
 ### Rule 4: Shared data via select hook
 
 When multiple siblings need the same entity, create a colocated `use<Entity>.ts` hook that selects from an already-loaded query (adapt to the project's data fetching library):
@@ -247,6 +206,32 @@ When a component grows beyond ~80 lines or renders several distinct "blocks":
 2. Extract each block into its **own file** in that subfolder.
 3. Each sub-component receives **only IDs**, fetches its own data with a shared select hook.
 4. The parent becomes a **layout-only** `index.tsx` that lists children — no data fetching, no business logic.
+
+**Refactor pattern — splitting an existing file.** When `MyComp.tsx` exists and must be split, transform it into a **folder with `index.tsx` and children inside** — do NOT leave children flat next to the original file:
+
+```
+BEFORE (too big — needs splitting):
+DealView/
+├── DealView.tsx
+└── DealViewContactItem.tsx
+
+AFTER (correct — folder mirrors JSX tree):
+DealView/
+├── DealView.tsx
+└── DealViewContactItem/
+    ├── index.tsx                       ← layout-only (was DealViewContactItem.tsx)
+    ├── DealViewContactItemHeader.tsx
+    └── DealViewContactItemContent.tsx
+
+WRONG (do NOT do this):
+DealView/
+├── DealView.tsx
+├── DealViewContactItem.tsx             ← still flat
+├── DealViewContactItemHeader.tsx       ← siblings instead of children
+└── DealViewContactItemContent.tsx
+```
+
+The original file becomes `DealViewContactItem/index.tsx`. Children live **inside** the folder, never as siblings of the parent file.
 
 ---
 
@@ -280,16 +265,6 @@ function ContactCard({ className }: { className?: string }) {
 - **Every component** MUST accept `className` and apply it to its root element (use `cn()` or `clsx()` to merge).
 - When the parent needs to control a child's placement, **pass `className`** — do NOT wrap in an extra `<div>` just to add margin/width.
 
-```tsx
-// BAD — unnecessary wrapper div
-<div className="mt-4">
-  <ContactCard />
-</div>
-
-// GOOD — pass className directly
-<ContactCard className="mt-4" />
-```
-
 ### Design system usage
 
 - **Always prefer DS components** over raw HTML + utility classes.
@@ -306,20 +281,7 @@ If three components render the same shell with different styles, extract a singl
 
 **2. Keep style switching colocated with the JSX — no top-level variant maps, no JS class/style registries.**
 
-Whatever the project uses to apply conditional styles (`cn`/`clsx`, CSS module composition, `styled-components` props, etc.), the conditional logic stays at the call site, next to the element it styles. Do NOT extract `XXX_VARIANT` constants or `Record<Kind, string>` registries above the component:
-
-```tsx
-// ✗ Top-level variant map — indirection, parasitic naming ("wrapper", "stripe")
-const HEADER_VARIANT: Record<Variant, { wrapper: string; inner: string }> = {
-  primary: { wrapper: "...", inner: "..." },
-  ...
-};
-
-// ✗ Module-level class registry — hides styles behind indirection
-export const KIND_CLASS: Record<Kind, string> = { success: "...", warning: "..." };
-import { KIND_CLASS } from './palette'
-className={apply(KIND_CLASS[kind])}
-```
+Whatever the project uses to apply conditional styles (`cn`/`clsx`, CSS module composition, `styled-components` props, etc.), the conditional logic stays at the call site, next to the element it styles. Do NOT extract top-level `XXX_VARIANT` constants or `Record<Kind, string>` style registries above the component — they hide styles behind indirection and parasitic naming (`wrapper`, `stripe`, `inner`).
 
 **Why:** colocation beats abstraction for styling. The visual decision + its condition stay in the JSX; a `grep` for the actual class/style lands on the component, not on an opaque `wrapper` key. Adding a new conditional = one line at the call site, not an extension to an external Record.
 
