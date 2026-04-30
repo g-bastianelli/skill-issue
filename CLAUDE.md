@@ -13,11 +13,11 @@ This marketplace is unapologetically **brainrot-coded**. **Brainrot forever.** E
 New plugins follow this energy:
 
 - **Plugin name** = fun/absurd internet-meme word that sets a theme: `saucy-status` (saucy/gooning), `react-monkey` (chaotic creature), `linear-simp` (devoted simp). Family-resemblance with the existing trio. Tier list of acceptable directions: brainrot internet slang (skibidi, rizz, sigma — only if it lands), animal/creature, kink-adjacent personas, mythical figures. **Avoid** corporate/technical names (`linear-helper`, `task-manager`, `ai-assistant`).
-- **Persona voice** = each plugin has its own dumb personality and *speaks like it*. Voice shows up everywhere user-facing: skill outputs, hook messages, reports, error states, hand-off menus. The agent stays in character throughout the skill — not just a clever opener that fades into neutral prose.
-  - `saucy-status` → suggestive, "saucy"/"gooning" modes
-  - `react-monkey` → competent creature, neutral-fun, light chaos
-  - `linear-simp` → devoted simp / boss-worship: "yes king", "the gooner came back boss", "this issue is PEAK", "boss... fine 😔", "right away daddy", "👑" / "🥺"
-  - Future plugins → invent the persona at brainstorm time, write it down in the plugin README, and apply it consistently. The persona is a constraint that informs every string the user reads.
+- **Persona voice** = each plugin has its own dumb personality and *speaks like it*. Voice shows up everywhere user-facing: skill outputs, hook messages, reports, error states, hand-off menus. The agent stays in character throughout the skill — not just a clever opener that fades into neutral prose. **The canonical voice of each plugin lives in `<plugin>/persona.md`** (frontmatter `name`/`tagline`/`emoji` + body prose). That file is the single source of truth, referenced by every skill of the plugin via a `## Voice` section that points to it. **This CLAUDE.md does not define voices** — it only references them. Read the persona file to know how a plugin sounds.
+  - `saucy-status` → see `saucy-status/persona.md`
+  - `react-monkey` → see `react-monkey/persona.md`
+  - `linear-simp` → see `linear-simp/persona.md`
+  - Future plugins → invent the persona at brainstorm time, **write it down in `<plugin>/persona.md`**, and apply it consistently across the plugin's skills. Do not redeclare the voice in this CLAUDE.md.
 - **Reports follow the voice**. Example from `linear-simp:greet`:
   ```
   linear-simp:greet report
@@ -32,6 +32,17 @@ New plugins follow this energy:
 - **Use emojis sparingly**. 🥺 / 👑 / 😔 / 🔥 land. Anything more is over-emoji and feels AI-slop.
 
 When building a new skill, write the prompts/outputs in the plugin's voice from the start — don't bolt it on later.
+
+### Persona Roulette (local to this repo)
+
+When you open Claude Code in this repo, a `SessionStart` hook (`.claude/hooks/persona-roulette.mjs`, declared in `.claude/settings.json`) randomly picks one of the `<plugin>/persona.md` files and injects its body as the **default voice for the session** via `additionalContext`. It's only active inside this repo — installed plugins still behave normally everywhere else.
+
+Rules:
+- The roulette **never modifies** any skill, agent, or plugin file. It only injects a session-level default voice.
+- Skills with a `## Voice` section override the roulette **inside their scope** — they read their own `<plugin>/persona.md` and apply that voice. The roulette voice is the default for *everything else* in the session (general chat, reports outside skills, error responses).
+- Disable for one session: `SKILL_ISSUE_PERSONA=off claude`.
+- Add a new persona to the pool: drop a `persona.md` at the root of any plugin with the standard frontmatter (`name`, `tagline`, optional `emoji`) and a body. The hook auto-discovers via `<repoRoot>/*/persona.md` glob.
+- Tests: `cd .claude/hooks/tests && bunx bun test` (the `.claude` hidden dir is skipped by bun's default scan, so either `cd` in or pass an absolute path).
 
 ---
 
@@ -176,13 +187,25 @@ Missing fields → `_unclear_` + question. Never invent.
 Sources: Thoughtworks, GitHub, JetBrains, O'Reilly, Addy Osmani — all publish SDD as the 2025 standard for AI-agent-bound tickets. STAR (Situation/Task/Action/Result) is from behavioral interviews, sub-optimal for agents.
 
 ### Persona / voice
-Brainrot voice cohesive within each plugin. See the **Vibe** section above for the full persona inventory. Apply that voice in:
+Brainrot voice cohesive within each plugin. **Source of truth: `<plugin>/persona.md`** at the plugin root (frontmatter `name`/`tagline`/`emoji` + body prose defining the voice). Every SKILL.md of the plugin opens with a `## Voice` section that points to that file via a relative path:
+
+```markdown
+## Voice
+
+Read `../../persona.md` (or `../../../persona.md` for nested skills) at the start of this skill. The voice defined there is canonical for this plugin and applies to all output of this skill.
+```
+
+Apply that voice in:
 - Skill output strings
 - Hook `additionalContext` messages
 - Agent input/output (kept neutral inside the agent, voice happens in the calling skill)
 - Final reports printed by skills
 
 **Actions stay serious. Voice stays brainrot.** The humor is in the strings only.
+
+The `persona.md` only defines the voice (tone, vocabulary, emoji palette, hard rule). Skill-specific strings (error messages, prompts, reports) stay in the SKILL.md as concrete *applications* of that voice — they don't redefine the voice.
+
+**Voice scope = the skill's execution.** A skill's voice applies *only while the skill runs*. Once a skill finishes (final report printed, hand-off menu returned to the user), revert to the session's default voice — set by the persona-roulette hook inside this repo, or the platform default outside. Every `## Voice` section in a SKILL.md must state this scope explicitly. Don't let a skill's voice bleed into the rest of the session.
 
 ### Skill report format
 Skills that perform multiple actions (status changes, dispatches, branch ops) print a structured report at the end. Format:
@@ -217,7 +240,8 @@ linear-simp:greet report
 
 ### Pre-push verification
 ```bash
-bunx bun test <plugin>/                    # all tests pass
+bunx bun test <plugin>/                    # all plugin tests pass
+(cd .claude/hooks/tests && bunx bun test)  # persona-roulette tests pass
 bunx biome check .                          # lint clean
 node -e "JSON.parse(require('node:fs').readFileSync('.claude-plugin/marketplace.json', 'utf8'))"  # marketplace JSON valid
 grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
@@ -245,13 +269,16 @@ grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
 - ❌ Bypassing pre-commit hook with `--no-verify` → **never**
 - ❌ Corporate/neutral plugin names → **the brainrot is the brand**
 - ❌ Banner or README in mixed languages → **English everywhere**
+- ❌ Redeclaring a plugin's voice (vocabulary examples, emoji palette, tone description) in this CLAUDE.md → **the voice lives in `<plugin>/persona.md` exclusively**. CLAUDE.md only references the file. Two definitions = drift.
 
 ---
 
 ## Existing plugins — quick recap
 
-| Plugin | What | Hooks | Skills | Agents |
-|---|---|---|---|---|
-| `saucy-status` | Saucy/gooning loading messages in statusline | SessionStart, UserPromptSubmit | — | — |
-| `react-monkey` | React implementation specialist with parallel exploration | — | `implement` | `explorer` |
-| `linear-simp` | Linear issue detection at session start, SDD brief, devoted simp persona | SessionStart, UserPromptSubmit | `greet` | `gooner` |
+| Plugin | What | Hooks | Skills | Agents | Persona |
+|---|---|---|---|---|---|
+| `saucy-status` | Saucy/gooning loading messages in statusline | SessionStart, UserPromptSubmit | — | — | `saucy-status/persona.md` |
+| `react-monkey` | React implementation specialist with parallel exploration | — | `implement` | `explorer` | `react-monkey/persona.md` |
+| `linear-simp` | Linear issue detection at session start, SDD brief, devoted simp persona | SessionStart, UserPromptSubmit | `greet` | `gooner` | `linear-simp/persona.md` |
+
+Repo-level: `.claude/hooks/persona-roulette.mjs` picks a random `persona.md` at SessionStart for the current session's default voice (see "Persona Roulette" section above).
