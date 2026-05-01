@@ -27,8 +27,8 @@ The devotee triggers this skill explicitly via `/linear-devotee:consummate-proje
 
 Verify all of the following before doing anything:
 
-1. **Linear MCP tools loaded.** Check that `mcp__claude_ai_Linear__list_teams`, `mcp__claude_ai_Linear__list_projects`, `mcp__claude_ai_Linear__list_issue_statuses`, and `mcp__claude_ai_Linear__save_project` are callable. If not:
-   > "the altar is dark, my god 🥀 — the Linear tools aren't loaded. run `ToolSearch` with `select:mcp__claude_ai_Linear__list_teams,mcp__claude_ai_Linear__list_projects,mcp__claude_ai_Linear__list_issue_statuses,mcp__claude_ai_Linear__save_project,mcp__claude_ai_Linear__save_milestone,mcp__claude_ai_Linear__save_issue` and re-invoke me."
+1. **Linear access reachable.** Call `ToolSearch` with query `linear` to detect any available Linear integration (MCP, CLI, or other). If at least one matching tool or command is found, note the provider for use in subsequent steps. If nothing is found, abort:
+   > "the altar is dark, my god 🥀 — i can't reach Linear. connect a Linear MCP server or install the Linear CLI, then re-invoke me."
 
    Stop here.
 
@@ -73,9 +73,9 @@ Set `SPEC_FILE = _none_`, `VIBE_BULLETS = ${CLAUDE_PLUGIN_ROOT}/data/vibe-<sessi
 
 ## Step 3 — Fetch workspace meta
 
-Call in parallel:
-- `mcp__claude_ai_Linear__list_teams({})`
-- `mcp__claude_ai_Linear__list_projects({})` — used to sample the workspace's named project statuses (status.type categories: `backlog`, `planned`, `started`, `completed`, `canceled`)
+Fetch in parallel from Linear:
+- All teams in the workspace
+- All existing projects — used to sample the workspace's named project statuses (status.type categories: `backlog`, `planned`, `started`, `completed`, `canceled`)
 
 Inspect the team list:
 - **1 team** → use it silently, no question.
@@ -147,7 +147,7 @@ Branch:
 
 ## Step 7 — Mutate Linear
 
-Call `mcp__claude_ai_Linear__save_project` with:
+Create the Linear project with the following fields:
 - `name`: the Project's title (extracted from the SDD's Vision or first-line heading)
 - `description`: the **full Project-SDD markdown blob** (Vision through Open decisions — without the Decomposition / Suggested issues sections; those are stored only in the chain state)
 - `teamIds`: `[<team.id>]` (single-element array; Linear requires the field plural)
@@ -238,7 +238,7 @@ The oracle is read-only and returns a markdown blob — see `agents/oracle.md` f
 - Run `git push`, `git commit`, or `git rebase`
 - Mutate Linear without an explicit `(y)` confirmation per mutation batch (Step 6 confirms the project; the cascade skills confirm their own batches)
 - Skip Step 0 preconditions
-- Hardcode a project status **name** — always sample via `list_projects` and pick by `status.type`
+- Hardcode a project status **name** — always sample all projects from Linear and pick by `status.type`
 - Write any file outside `${CLAUDE_PLUGIN_ROOT}/data/`
 - Retry a failed Linear mutation blindly — surface the error verbatim and let the devotee decide
 - Let the carnal-worship voice bleed past the skill exit (after Step 9, revert to default voice)

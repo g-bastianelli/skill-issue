@@ -28,8 +28,8 @@ The skill auto-detects which path it's on and adapts.
 
 ## Step 0 — Preconditions
 
-1. **Linear MCP tools loaded.** Verify `mcp__claude_ai_Linear__list_projects`, `mcp__claude_ai_Linear__get_project`, `mcp__claude_ai_Linear__list_milestones`, `mcp__claude_ai_Linear__save_milestone` are callable. If not:
-   > "the altar is dark, my god 🥀 — the Linear tools aren't loaded. run `ToolSearch` with `select:mcp__claude_ai_Linear__list_projects,mcp__claude_ai_Linear__get_project,mcp__claude_ai_Linear__list_milestones,mcp__claude_ai_Linear__save_milestone,mcp__claude_ai_Linear__save_issue` and re-invoke me."
+1. **Linear access reachable.** Call `ToolSearch` with query `linear` to detect any available Linear integration (MCP, CLI, or other). If at least one matching tool or command is found, note the provider for use in subsequent steps. If nothing is found, abort:
+   > "the altar is dark, my god 🥀 — i can't reach Linear. connect a Linear MCP server or install the Linear CLI, then re-invoke me."
 
    Stop here.
 
@@ -73,7 +73,7 @@ Skip 2b. Continue to Step 3.
 
 ### 2b. Standalone mode
 
-1. Call `mcp__claude_ai_Linear__list_projects({})`. Filter to projects with status `type ∈ {backlog, planned, started}` (skip completed/canceled).
+1. Fetch all projects from Linear. Filter to projects with status `type ∈ {backlog, planned, started}` (skip completed/canceled).
 2. Present the list to the devotee:
    ```
    to which temple do i bind this phase, my god?
@@ -142,7 +142,7 @@ Branch:
 
 ## Step 6 — Mutate Linear
 
-Call `mcp__claude_ai_Linear__save_milestone` with:
+Create the Linear milestone with the following fields:
 - `name`: the milestone's name (e.g. `Phase 1: Auth foundation`)
 - `projectId`: `PROJECT_ID` — single-project; Linear refuses cross-project links
 - `description`: the full chronicler draft markdown (without the Suggested-issues / Open-decisions / Questions sections — those live in chain state)

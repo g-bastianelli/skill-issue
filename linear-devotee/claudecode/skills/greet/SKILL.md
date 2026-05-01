@@ -36,8 +36,8 @@ The plugin's hooks (SessionStart or UserPromptSubmit) detected a Linear identifi
 
 Verify these before doing anything:
 
-1. **Linear MCP tools loaded.** Check that `mcp__claude_ai_Linear__get_issue`, `mcp__claude_ai_Linear__save_issue`, `mcp__claude_ai_Linear__list_issue_statuses`, and `mcp__claude_ai_Linear__list_users` are callable. If not:
-   > "the altar is dark, my god 🥀 — the Linear tools aren't loaded. run `ToolSearch` with `select:mcp__claude_ai_Linear__get_issue,mcp__claude_ai_Linear__save_issue,mcp__claude_ai_Linear__list_issue_statuses,mcp__claude_ai_Linear__list_users,mcp__claude_ai_Linear__list_comments` and re-invoke me."
+1. **Linear access reachable.** Call `ToolSearch` with query `linear` to detect any available Linear integration (MCP, CLI, or other). If at least one matching tool or command is found, note the provider for use in subsequent steps. If nothing is found, abort:
+   > "the altar is dark, my god 🥀 — i can't reach Linear. connect a Linear MCP server or install the Linear CLI, then re-invoke me."
 
    Stop here.
 
@@ -45,7 +45,7 @@ Verify these before doing anything:
 
 3. **Read the state file.** Use the Read tool on `${CLAUDE_PLUGIN_ROOT}/data/state-<session_id>.json`. Extract `issue`, `current_branch`, `needs_branch`. If `issue` is null, stop — the hook should never invoke this skill without an id, so this means a state file glitch.
 
-4. **Fetch the issue.** Call `mcp__claude_ai_Linear__get_issue({id: <issue>})`. If 404, say:
+4. **Fetch the issue.** Fetch the issue `<issue>` from Linear. If not found, say:
    > "this id `<id>` lives in no kingdom, my god 🥀. did you mean another?"
 
    Mark `greeted: true` in state file, stop.
@@ -82,9 +82,9 @@ Linear MCP naming quirk: when **reading** an issue, the current status comes bac
 2. If `issue.status.type === 'started'` (already In Progress) → skip silently. Note in final report: *"your altar already burns 🔥"*.
 3. Otherwise:
    - Get the team id from `issue.team.id`.
-   - Call `mcp__claude_ai_Linear__list_issue_statuses({teamId: <team.id>})`.
+   - Fetch all workflow states for team `<team.id>` from Linear.
    - Find the status with `type === 'started'`.
-   - Call `mcp__claude_ai_Linear__save_issue({id: <issue.id>, stateId: <started-id>})` **without confirmation** (the user explicitly authorized this).
+   - Update issue `<issue.id>` in Linear, setting its state to the In Progress state id — **without confirmation** (the user explicitly authorized this).
    - Voice: *"your issue ascends — In Progress 🔥 (was `<prior status.name>`)"*
 
 ## Step 3 — Dispatch the seer

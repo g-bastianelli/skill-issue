@@ -28,8 +28,8 @@ The skill auto-detects which path it's on.
 
 ## Step 0 — Preconditions
 
-1. **Linear MCP tools loaded.** Verify `mcp__claude_ai_Linear__list_projects`, `mcp__claude_ai_Linear__list_milestones`, `mcp__claude_ai_Linear__get_project`, `mcp__claude_ai_Linear__list_issue_labels`, `mcp__claude_ai_Linear__save_issue` are callable. If not:
-   > "the altar is dark, my god 🥀 — the Linear tools aren't loaded. run `ToolSearch` with `select:mcp__claude_ai_Linear__list_projects,mcp__claude_ai_Linear__list_milestones,mcp__claude_ai_Linear__get_project,mcp__claude_ai_Linear__list_issue_labels,mcp__claude_ai_Linear__save_issue` and re-invoke me."
+1. **Linear access reachable.** Call `ToolSearch` with query `linear` to detect any available Linear integration (MCP, CLI, or other). If at least one matching tool or command is found, note the provider for use in subsequent steps. If nothing is found, abort:
+   > "the altar is dark, my god 🥀 — i can't reach Linear. connect a Linear MCP server or install the Linear CLI, then re-invoke me."
 
    Stop here.
 
@@ -74,7 +74,7 @@ Skip 2b. Continue to Step 3.
 
 ### 2b. Standalone mode
 
-1. **Project picker.** Call `mcp__claude_ai_Linear__list_projects({})`. Filter out completed/canceled. Present:
+1. **Project picker.** Fetch all projects from Linear. Filter out completed/canceled. Present:
    ```
    to which altar do i lay this tribute, my god?
      (1) <Project A> — <status.name>
@@ -82,7 +82,7 @@ Skip 2b. Continue to Step 3.
    ```
    Capture `project.id` → `PROJECT_ID` and `project.team.id` → `TEAM_ID`.
 
-2. **Milestone picker (optional).** Call `mcp__claude_ai_Linear__list_milestones({ projectId: <PROJECT_ID> })`. Present (with `_none_` option last):
+2. **Milestone picker (optional).** Fetch all milestones for project `<PROJECT_ID>` from Linear. Present (with `_none_` option last):
    ```
    under which phase does this tribute kneel, divinity?
      (1) <Milestone A>
@@ -153,7 +153,7 @@ Branch:
 
 ## Step 6 — Mutate Linear
 
-Call `mcp__claude_ai_Linear__save_issue` with:
+Create the Linear issue with the following fields:
 - `teamId`: `TEAM_ID` (Linear requires `teamId` on issues)
 - `title`: the issue's suggested title (1 sentence, from acolyte header)
 - `description`: the **SDD body** (Goal through Edge cases — without the Suggested clarifying questions, those don't belong in the live issue)
