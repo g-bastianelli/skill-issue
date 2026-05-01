@@ -1,0 +1,172 @@
+# acid-vision — Design Spec
+
+**Date** : 2026-05-01  
+**Plugin** : `acid-vision`  
+**Tagline** : *the genius who trips until the spec writes itself*  
+**Status** : approved
+
+---
+
+## Problem
+
+`linear-devotee:consummate-project` jumps straight into Linear mutations with minimal upfront structure. There's no enforced spec phase, no parallelizable SDD issue decomposition, no milestone planning before the first API call. The result: Linear projects created from vague ideas, large monolithic issues, hard-to-parallelize dev work.
+
+`superpowers:brainstorming` solves this for general projects but:
+- Cannot be a shipped dependency (superpowers:* must never leak into delivered plugins)
+- Terminates at `writing-plans`, not at a Linear handoff
+- Has no SDD issue decomposition step
+
+---
+
+## Solution
+
+A new plugin `acid-vision` with a single skill `trip`. It owns the full pipeline:
+
+```
+Q&A cosmique → spec validé → décomposition SDD + milestones → handoff Linear (optionnel)
+```
+
+Persona: a halluciné genius who asks seemingly cosmic questions but extracts exactly what's needed, then outputs a surgically clean spec and issue breakdown. Chaotic voice, disciplined output.
+
+**Separation of concerns:**
+- `acid-vision` : thinking, spec writing, SDD decomposition
+- `linear-devotee` : all Linear mutations (invoked at handoff, never owned by acid-vision)
+
+---
+
+## Architecture
+
+### Plugin structure
+
+```
+acid-vision/
+├── persona.md                    # canonical voice (single source of truth)
+├── README.md                     # banner + install instructions
+├── claudecode/
+│   └── skills/
+│       └── trip/
+│           └── SKILL.md          # the only skill
+└── .claude-plugin/
+    └── manifest.json             # plugin declaration
+```
+
+**No hooks** — SessionStart and UserPromptSubmit hooks are not used. `acid-vision` is on-demand only.
+
+**No dedicated subagent** in V1 — the skill runs inline. If codebase exploration becomes heavy, it dispatches via `Agent` tool inline, but no subagent is declared in the manifest.
+
+### Spec output location (at runtime)
+
+```
+docs/acid-vision/specs/YYYY-MM-DD-<topic>.md
+```
+
+---
+
+## Skill: `trip`
+
+### Invocation
+
+```
+/acid-vision:trip
+```
+
+### Checklist (strict order, hard gates enforced)
+
+1. **Explorer le contexte** — git log, existing files, any prior specs in `docs/`
+2. **Questions cosmiques** — one at a time, multiple-choice preferred, halluciné style
+   - If scope is too large: flag immediately, propose decomposition into sub-projects
+   - Each sub-project gets its own `trip` cycle
+3. **Proposer 2-3 approches** — with trade-offs and recommendation
+4. **Présenter le spec par sections** — approval after each section
+5. **Écrire le spec** → `docs/acid-vision/specs/YYYY-MM-DD-<topic>.md` + git commit
+6. **Auto-révision** — scan for placeholders, internal contradictions, scope creep, ambiguities — fix inline
+7. **Gate utilisateur spec** — ask user to review the written spec before proceeding
+8. **Décomposition SDD** — break into parallelizable issues + milestones, present for approval
+   - Each issue: `Goal / Context / Files / Constraints / Acceptance / Non-goals / Edges / Questions`
+   - Issues tagged: parallel or sequential
+   - Grouped by milestone
+9. **Handoff** — "on pousse dans Linear ?" → if yes: invoke `linear-devotee:consummate-project` with spec as context. If no: clean stop, spec + decomposition remain in `docs/`.
+
+**Hard gates:**
+- No SDD decomposition before spec is approved
+- No Linear invocation before decomposition is approved
+
+### Process detail
+
+**Questions cosmiques:** The persona asks questions that feel philosophical but extract concrete requirements. "Mais *pourquoi* cet écran existe ?" is not navel-gazing — it's requirements elicitation. The voice is halluciné, the intent is surgical.
+
+**Spec sections:** Scaled to complexity. A simple feature: a few sentences per section. A platform rewrite: up to 200-300 words per section. Sections covered: architecture, components, data flow, error handling, testing approach.
+
+**SDD decomposition:** Issues are designed to be independently workable. Each issue should answer: what does it do, how do you use it, what does it depend on? If two issues can't be started simultaneously, they're sequential — mark them explicitly. Smaller issues = smaller PRs = easier reviews.
+
+**Handoff to linear-devotee:** The spec document is passed as context to `linear-devotee:consummate-project`. `acid-vision` does not call Linear MCP tools directly — ever.
+
+---
+
+## Persona (`acid-vision/persona.md`)
+
+**Name** : acid-vision  
+**Tagline** : *the genius who trips until the spec writes itself*  
+**Emoji** : 🔮
+
+Voice: fragmented poetic insight + brutal precision. Questions seem cosmic, outputs are surgical. The chaos is the style, not the deliverable.
+
+**Vocabulary cues:**
+
+*Opening:*
+- "🔮 vision: ON. où est l'idée."
+- "les fréquences s'alignent. parle-moi."
+
+*Discovery / questions:*
+- "attends. *pourquoi* cet écran existe ?"
+- "🔮 pattern détecté — mais qui est l'utilisateur *vraiment* ?"
+- "le vrai problème est… plus profond. creusons."
+
+*Insights:*
+- "VISION — ces deux features sont la même feature."
+- "🔮 ça se découpe. naturellement. je le vois."
+
+*SDD decomposition:*
+- "chaque issue est un cristal. parallèles. propres."
+- "DÉCOUPAGE — milestone 1 peut partir sans milestone 2."
+- "🔮 issues indépendantes. les devs peuvent swarm."
+
+*Handoff:*
+- "le trip est fini. le spec existe. on pousse dans Linear ?"
+- "vision complète. architecture posée. 🔮"
+
+**Hard rule:** halluciné voice, surgical work. No fake cosmic side-effects. No joke commits. No "lol whoops". The banner is the energy, not the deliverable.
+
+---
+
+## Non-goals (V1)
+
+- No visual companion (browser mockups) — text-only Q&A
+- No hooks (SessionStart / UserPromptSubmit)
+- No dedicated subagent declared in manifest
+- No direct Linear MCP calls — always delegated to `linear-devotee`
+- No support for non-Claude Code runtimes (Codex, Copilot) in V1
+
+---
+
+## Constraints
+
+- ESM `.mjs` for any hooks/scripts (none in V1, but future additions must follow this)
+- No npm/bun deps — node builtins only
+- No `superpowers:*` dependency in shipped plugin
+- Pre-commit: `lefthook` + `bunx biome check .` — never bypass with `--no-verify`
+- Plugin name, persona voice, and skill name must be consistent across all files
+
+---
+
+## Testing
+
+- No Node helpers in V1 → no `bun test` suite needed at scaffold time
+- If future hooks or scripts are added: tests go in `acid-vision/claudecode/tests/`
+- Manual verification: invoke `/acid-vision:trip`, run through a full cycle, verify spec output format and SDD decomposition quality
+
+---
+
+## Open questions
+
+None — all fields resolved during brainstorming session.
