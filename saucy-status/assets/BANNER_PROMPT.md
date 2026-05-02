@@ -8,7 +8,7 @@ required:
   - user-centered personas keep the user offscreen or abstract
   - 3:1 wide banner target
   - no readable text unless exact English text is explicitly requested
-  - preserve replaced banners as banner-old.png
+  - final asset path is assets/banner.png
 -->
 
 # saucy-status banner prompt
@@ -32,8 +32,8 @@ If the persona is defined by a relationship to the user, the user is the
 central power but must stay offscreen, implied, or abstract. Do not invent a
 competing deity, boss, or second mascot.
 
-Composition: mascot on the left or left-center, roomy negative space on the
-right for README/title breathing room. Background should come from the
+Composition: keep the mascot prominent and leave usable breathing room where
+the composition needs it for README/title balance. Background should come from the
 persona's world too: flirty loading-screen theater, cheeky terminal lounge,
 progress-bar dressing room, or another playful status-line setting, as long as
 the banner stays readable and not cluttered. Thick black outlines, simple cel
@@ -48,6 +48,3 @@ Avoid photorealism, dark neon poster style, luxury fantasy composition,
 serious cinematic lighting, full-bleed clutter, tiny over-detailed UI panels,
 corporate SaaS polish, logos, watermarks, and any readable words.
 ```
-
-If replacing an existing nice banner, keep it as `assets/banner-old.png`
-before writing the new `assets/banner.png`.

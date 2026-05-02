@@ -159,10 +159,9 @@ Generate `<plugin>/assets/BANNER_PROMPT.md` from
 `_templates/plugin/BANNER_PROMPT.md`. This is the source of truth for future
 image generation. It must tell the user/Codex to create a 3:1 README banner
 matching the existing nuthouse banners: visible persona/creature/being mascot,
-hand-drawn webcomic style, roomy negative space, background derived from the
+hand-drawn webcomic style, usable breathing room, background derived from the
 persona's world, functional props kept secondary, no readable text unless exact
-English text is explicitly requested, and to keep any replaced nice banner as
-`assets/banner-old.png`.
+English text is explicitly requested, and final asset path `assets/banner.png`.
 
 Important banner semantics:
 - The scene comes from the persona's world first, not a generic dev room and
@@ -329,7 +328,7 @@ Rules:
 - The prompt must make the plugin persona/being the main subject.
 - The target is `assets/banner.png`, 3:1-ish README banner.
 - Style matches existing nuthouse banners: hand-drawn webcomic mascot, roomy
-  negative space, readable persona-world background, light brainrot energy.
+  breathing space, readable persona-world background, light brainrot energy.
 - The setting comes from the persona's world first. Domain/task props are
   secondary visual clues, not the whole scene.
 - For user-centered personas, keep the user offscreen/implied/abstract and do
@@ -338,8 +337,6 @@ Rules:
   SaaS polish.
 - No readable text in the image unless the user explicitly provides exact
   English text.
-- If replacing an existing nice banner, preserve it first as
-  `assets/banner-old.png`.
 
 ### 2f. Hooks (only if Q4 != none)
 
@@ -425,7 +422,7 @@ scaffold-plugin report
   Marketplace:    added (category: <CATEGORY>)
   README (root):  updated
   Banner prompt:  <NAME>/assets/BANNER_PROMPT.md
-  TODO (manual):  generate assets/banner.png from assets/BANNER_PROMPT.md — 3:1 ratio, nuthouse webcomic mascot style, English text only if explicitly requested
+  Banner asset:   TODO generate <NAME>/assets/banner.png from assets/BANNER_PROMPT.md — 3:1 ratio, nuthouse webcomic mascot style, English text only if explicitly requested
   Next step:      `/scaffold-skill` to add the plugin's first skill, or `/scaffold-agent` for a dedicated subagent
 ```
 
@@ -456,8 +453,8 @@ These are **non-negotiable** regardless of voice intensity:
    with `node -e "JSON.parse(...)"`. On failure, revert.
 8. **Banner prompt is scaffolded.** Create `assets/BANNER_PROMPT.md` from
    the template. Don't fake a banner with SVG/placeholders. If an image is
-   generated later, it must become `assets/banner.png`; preserve replaced
-   nice banners as `assets/banner-old.png`.
+   generated later, it must become `assets/banner.png`. Do not keep archive
+   copies such as `banner-old.png` or `banner-love.png` in the plugin.
 9. **Voice section** in any future SKILL.md of this plugin must point to
    `<plugin>/persona.md` (this is the contract; `scaffold-skill`
    enforces it). Don't redeclare the voice in CLAUDE.md or anywhere

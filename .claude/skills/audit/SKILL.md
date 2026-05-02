@@ -22,8 +22,9 @@ tool names) stay in their original form regardless of language.
 
 ## What this skill does
 
-Audits every plugin's SKILL.md, AGENT.md, persona.md, and
-`assets/BANNER_PROMPT.md` against the `_templates/` source of truth.
+Audits every plugin's SKILL.md, AGENT.md, persona.md, README banner reference,
+`assets/banner.png`, and `assets/BANNER_PROMPT.md` against the `_templates/`
+source of truth.
 No auto-fix — reports deviations, the human decides what to do.
 
 `react-monkey` is the existing visual reference banner. Audit it like every
@@ -56,7 +57,8 @@ Requirements extracted:
 - **SKILL.md:** required_frontmatter `[name, description]`, required_sections `["## Voice", "## Language"]`
 - **AGENT.md:** required_frontmatter `[name, description]`, required_sections `[]`
 - **persona.md:** required_frontmatter `[name, tagline]`, required_sections `["## Language", "## Hard rule"]`
-- **BANNER_PROMPT.md:** required guidance: README banner, visible mascot/persona, existing nuthouse style, setting from persona world, functional props secondary, user-centered personas keep the user offscreen/implied/abstract, 3:1 target, no readable text unless exact English text is requested, preserve replaced banners as `banner-old.png`
+- **BANNER_PROMPT.md:** required guidance: README banner, visible mascot/persona, existing nuthouse style, setting from persona world, functional props secondary, user-centered personas keep the user offscreen/implied/abstract, 3:1 target, no readable text unless exact English text is requested, final asset path `assets/banner.png`
+- **Banner assets:** `<plugin>/assets/banner.png` must exist when the plugin README references it; no stale `banner.jpeg`, `banner-old.png`, `banner-love.png`, or other archive banner files should remain.
 
 ## Step 3 — Discover all artefacts
 
@@ -75,6 +77,10 @@ ls */persona.md 2>/dev/null
 
 # Banner prompts
 ls */assets/BANNER_PROMPT.md 2>/dev/null
+
+# Banner assets
+ls */assets/banner.png 2>/dev/null
+ls */banner.jpeg */banner.jpg */assets/banner-old.* */assets/banner-love.* 2>/dev/null
 ```
 
 ## Step 4 — Check each file
@@ -109,7 +115,13 @@ For each file, check against the matching template's requirements.
 6. Contains guidance for user-centered personas: user offscreen/implied/abstract, no competing deity/boss/mascot — ❌ CRITIQUE if missing
 7. Contains the 3:1 README banner target — ❌ CRITIQUE if missing
 8. Contains no-readable-text guidance unless exact English text is requested — ❌ CRITIQUE if missing
-9. Contains `banner-old.png` preservation guidance — ⚠️ WARNING if missing
+9. Contains final-path guidance for `assets/banner.png` — ⚠️ WARNING if missing
+
+**Banner asset checks (per plugin):**
+1. If README references `./assets/banner.png`, `<plugin>/assets/banner.png` exists — ❌ CRITIQUE if missing
+2. If `<plugin>/assets/banner.png` exists, README references it — ⚠️ WARNING if missing
+3. No stale root banner image such as `<plugin>/banner.jpeg` or `<plugin>/banner.jpg` — ⚠️ WARNING if present
+4. No archive banner image such as `assets/banner-old.*` or `assets/banner-love.*` — ⚠️ WARNING if present
 
 ## Step 5 — Report
 
@@ -124,11 +136,14 @@ Output format:
   ⚠️  persona.md — missing tagline in frontmatter [WARNING]
   ⚠️  assets/BANNER_PROMPT.md — absent [WARNING]
   ❌ assets/BANNER_PROMPT.md — missing persona-world setting rule [CRITIQUE]
+  ❌ assets/banner.png — README references missing banner [CRITIQUE]
+  ⚠️  banner.jpeg — stale banner image [WARNING]
 
 ### <plugin-name>
   ✅ claudecode/agents/<agent>.md
   ✅ persona.md
   ✅ assets/BANNER_PROMPT.md
+  ✅ assets/banner.png
 
 ---
 <N> critiques · <N> warnings · <N> ok
