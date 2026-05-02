@@ -2,17 +2,17 @@
   <img src="./assets/banner.png" width="640" />
 </p>
 
-<h1 align="center">skill-issue</h1>
+<h1 align="center">franken-agents</h1>
 
 <p align="center">
   Cross-platform AI agent plugin marketplace — Claude Code + Codex
 </p>
 
 <p align="center">
-  <a href="https://github.com/g-bastianelli/skill-issue/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/g-bastianelli/skill-issue?style=flat-square&color=fbbf24" /></a>
+  <a href="https://github.com/g-bastianelli/franken-agents/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/g-bastianelli/franken-agents?style=flat-square&color=fbbf24" /></a>
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-compatible-8B5CF6?style=flat-square" />
   <img alt="Codex" src="https://img.shields.io/badge/Codex-compatible-10B981?style=flat-square" />
-  <img alt="License" src="https://img.shields.io/github/license/g-bastianelli/skill-issue?style=flat-square" />
+  <img alt="License" src="https://img.shields.io/github/license/g-bastianelli/franken-agents?style=flat-square" />
   <img alt="bun" src="https://img.shields.io/badge/bun-1.3-f472b6?style=flat-square&logo=bun" />
 </p>
 
@@ -36,14 +36,14 @@ Plugins, skills, and agents for Claude Code and Codex. Each plugin ships cross-r
 Add this marketplace, then install any plugin:
 
 ```
-/plugin marketplace add g-bastianelli/skill-issue
+/plugin marketplace add g-bastianelli/franken-agents
 ```
 
 ```
 /plugin install react-monkey
-/plugin install linear-devotee@skill-issue
+/plugin install linear-devotee@franken-agents
 /plugin install saucy-status@saucy-status
-/plugin install acid-vision@skill-issue
+/plugin install acid-vision@franken-agents
 ```
 
 Restart Claude Code after installing.
@@ -51,7 +51,7 @@ Restart Claude Code after installing.
 ### Codex CLI
 
 ```
-codex plugin marketplace add g-bastianelli/skill-issue
+codex plugin marketplace add g-bastianelli/franken-agents
 ```
 
 Then open the plugin browser (`/plugins`) and install from there.

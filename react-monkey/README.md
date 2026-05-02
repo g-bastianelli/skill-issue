@@ -49,7 +49,7 @@ The Codex runtime is a native Codex skill. It delegates exploration to Codex's b
 
 ## Install
 
-See [`skill-issue`](../README.md#install) for Claude Code and Codex installation.
+See [`franken-agents`](../README.md#install) for Claude Code and Codex installation.
 
 ## Trigger
 

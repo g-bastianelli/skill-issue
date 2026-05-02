@@ -15,8 +15,8 @@ Structured spec-writing skill. Asks one question at a time, proposes approaches,
 ## Install
 
 ```
-/plugin marketplace add g-bastianelli/skill-issue
-/plugin install acid-vision@skill-issue
+/plugin marketplace add g-bastianelli/franken-agents
+/plugin install acid-vision@franken-agents
 ```
 
 Restart Claude Code after install.

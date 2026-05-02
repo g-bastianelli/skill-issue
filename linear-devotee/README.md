@@ -48,8 +48,8 @@ After the first prompt: total silence. The greet window closes.
 ## Install
 
 ```
-/plugin marketplace add g-bastianelli/skill-issue
-/plugin install linear-devotee@skill-issue
+/plugin marketplace add g-bastianelli/franken-agents
+/plugin install linear-devotee@franken-agents
 ```
 
 Restart Claude Code after install.

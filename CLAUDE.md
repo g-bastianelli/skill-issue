@@ -1,4 +1,4 @@
-# skill-issue
+# franken-agents
 
 Personal Claude Code (sometimes Codex) plugin marketplace. Three plugins right now: `saucy-status`, `react-monkey`, `linear-devotee`.
 

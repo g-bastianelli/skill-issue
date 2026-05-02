@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "skill-issue",
+  "name": "franken-agents",
   "owner": { "name": "g-bastianelli", "url": "https://github.com/g-bastianelli" },
   "plugins": [
     { "name": "saucy-status", "source": "./saucy-status", "category": "fun" },
@@ -8,7 +8,7 @@
       "name": "react-monkey",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/g-bastianelli/skill-issue",
+        "url": "https://github.com/g-bastianelli/franken-agents",
         "path": "react-monkey"
       },
       "category": "productivity"
@@ -17,7 +17,7 @@
       "name": "linear-devotee",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/g-bastianelli/skill-issue",
+        "url": "https://github.com/g-bastianelli/franken-agents",
         "path": "linear-devotee"
       },
       "category": "productivity"
@@ -26,7 +26,7 @@
       "name": "acid-vision",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/g-bastianelli/skill-issue",
+        "url": "https://github.com/g-bastianelli/franken-agents",
         "path": "acid-vision/claudecode"
       },
       "category": "productivity"
