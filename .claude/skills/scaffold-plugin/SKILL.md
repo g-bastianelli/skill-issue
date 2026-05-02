@@ -55,15 +55,16 @@ phrasing — or if the model already has a name proposal, jump to validation).
 
 **Validation rules** (apply mentally, panic-correct if violated):
 - Must be **kebab-case**, lowercase, alphanumeric + hyphens only.
-- Must be a **fun/absurd brainrot internet-meme word** that announces a
-  theme. Family-resemblance with `saucy-status`, `react-monkey`,
-  `linear-devotee`. Acceptable directions: brainrot internet slang
-  (skibidi, rizz, sigma — only if it lands), animal/creature,
-  kink-adjacent personas, mythical figures.
+- Must name a **persona first**: a person, creature, role, mythic figure,
+  cultist, monster, or other being that can speak in character. Family
+  resemblance with `react-monkey`, `linear-devotee`, `acid-prophet`.
+  `saucy-status` is a historical exception, not a naming precedent.
+  Reject abstract effects, modes, or vibes like `acid-vision`,
+  `task-flow`, `idea-engine` unless the noun clearly points to a character.
 - **Avoid** corporate/technical names: `linear-helper`, `task-manager`,
   `ai-assistant`, `code-tool`. If the user proposes something corporate,
-  push back in voice ("…non non non, ce nom est *propre*. trop propre.
-  il nous faut quelque chose de **vivant**, de **brainrot**. propose
+  abstract, or non-persona, push back in voice ("…non non non, ce nom est
+  une vapeur. il nous faut quelque chose de **vivant**, de **brainrot**. propose
   autre chose ?") and re-ask.
 - Must not collide with an existing plugin folder at the repo root.
   Check via `Bash: ls <repo>/<name> 2>/dev/null && echo EXISTS`.
@@ -115,6 +116,7 @@ Generate the following files. **Use the Write tool** for each.
 - `plugin.json` → `_templates/plugin/claudecode/.claude-plugin/plugin.json`
 - `plugin.toml` → `_templates/plugin/codex/.codex-plugin/plugin.toml`
 - `README.md` → `_templates/plugin/README.md`
+- `BANNER_PROMPT.md` → `_templates/plugin/BANNER_PROMPT.md`
 
 Variables to substitute in templates:
 - `{{plugin}}` → plugin directory name (kebab-case brainrot name)
@@ -152,6 +154,14 @@ For `codex` / `both`:
 
 Also drop a `.gitkeep` in `<plugin>/assets/` so the folder commits cleanly
 even before the banner exists.
+
+Generate `<plugin>/assets/BANNER_PROMPT.md` from
+`_templates/plugin/BANNER_PROMPT.md`. This is the source of truth for future
+image generation. It must tell the user/Codex to create a 3:1 README banner
+matching the existing nuthouse banners: visible persona/creature/being mascot,
+hand-drawn webcomic style, roomy negative space, pale textured background, no
+readable text unless exact English text is explicitly requested, and to keep
+any replaced nice banner as `assets/banner-old.png`.
 
 ### 2b. `<plugin>/persona.md`
 
@@ -302,6 +312,22 @@ MIT
 (The triple backticks for the install snippet must be raw in the
 generated file — escape them in your Write call as needed.)
 
+### 2e-bis. `<plugin>/assets/BANNER_PROMPT.md`
+
+Generate this from `_templates/plugin/BANNER_PROMPT.md`.
+
+Rules:
+- The prompt must make the plugin persona/being the main subject.
+- The target is `assets/banner.png`, 3:1-ish README banner.
+- Style matches existing nuthouse banners: hand-drawn webcomic mascot, pale
+  textured background, roomy negative space, light brainrot energy.
+- Avoid photorealistic, dark neon poster, premium fantasy poster, or corporate
+  SaaS polish.
+- No readable text in the image unless the user explicitly provides exact
+  English text.
+- If replacing an existing nice banner, preserve it first as
+  `assets/banner-old.png`.
+
 ### 2f. Hooks (only if Q4 != none)
 
 Reference the canonical implementations rather than copying them blindly:
@@ -385,7 +411,8 @@ scaffold-plugin report
   Manifest:       <NAME>/claudecode/.claude-plugin/plugin.json
   Marketplace:    added (category: <CATEGORY>)
   README (root):  updated
-  TODO (manual):  assets/banner.png — 3:1 ratio, brainrot-aligned, English text only
+  Banner prompt:  <NAME>/assets/BANNER_PROMPT.md
+  TODO (manual):  generate assets/banner.png from assets/BANNER_PROMPT.md — 3:1 ratio, nuthouse webcomic mascot style, English text only if explicitly requested
   Next step:      `/scaffold-skill` to add the plugin's first skill, or `/scaffold-agent` for a dedicated subagent
 ```
 
@@ -414,8 +441,10 @@ These are **non-negotiable** regardless of voice intensity:
    the skill and tell them this repo isn't the right marketplace.
 7. **Marketplace JSON must parse** before and after the edit. Validate
    with `node -e "JSON.parse(...)"`. On failure, revert.
-8. **Banner is the user's job.** Don't try to generate, copy, or fake
-   one. Just flag it as a TODO in the final report.
+8. **Banner prompt is scaffolded.** Create `assets/BANNER_PROMPT.md` from
+   the template. Don't fake a banner with SVG/placeholders. If an image is
+   generated later, it must become `assets/banner.png`; preserve replaced
+   nice banners as `assets/banner-old.png`.
 9. **Voice section** in any future SKILL.md of this plugin must point to
    `<plugin>/persona.md` (this is the contract; `scaffold-skill`
    enforces it). Don't redeclare the voice in CLAUDE.md or anywhere

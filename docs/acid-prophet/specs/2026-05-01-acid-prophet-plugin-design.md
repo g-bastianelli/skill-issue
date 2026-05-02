@@ -1,7 +1,7 @@
-# acid-vision — Design Spec
+# acid-prophet — Design Spec
 
 **Date** : 2026-05-01  
-**Plugin** : `acid-vision`  
+**Plugin** : `acid-prophet`  
 **Tagline** : *the genius who trips until the spec writes itself*  
 **Status** : approved
 
@@ -17,7 +17,7 @@ What's missing is a dedicated thinking phase — structured dialogue that extrac
 
 ## Solution
 
-A new plugin `acid-vision` with a single skill `trip`. It owns the thinking pipeline only:
+A new plugin `acid-prophet` with a single skill `trip`. It owns the thinking pipeline only:
 
 ```
 Q&A cosmique → spec validé → handoff Linear (optionnel)
@@ -26,7 +26,7 @@ Q&A cosmique → spec validé → handoff Linear (optionnel)
 Persona: a halluciné genius who asks seemingly cosmic questions but extracts exactly what's needed, then outputs a surgically clean spec. Chaotic voice, disciplined output.
 
 **Separation of concerns:**
-- `acid-vision` : thinking and spec writing — nothing else
+- `acid-prophet` : thinking and spec writing — nothing else
 - `linear-devotee` : SDD decomposition, milestones, issues, all Linear mutations (invoked at handoff)
 
 ---
@@ -36,7 +36,7 @@ Persona: a halluciné genius who asks seemingly cosmic questions but extracts ex
 ### Plugin structure
 
 ```
-acid-vision/
+acid-prophet/
 ├── persona.md                    # canonical voice (single source of truth)
 ├── README.md                     # banner + install instructions
 ├── claudecode/
@@ -47,14 +47,14 @@ acid-vision/
     └── manifest.json             # plugin declaration
 ```
 
-**No hooks** — SessionStart and UserPromptSubmit hooks are not used. `acid-vision` is on-demand only.
+**No hooks** — SessionStart and UserPromptSubmit hooks are not used. `acid-prophet` is on-demand only.
 
 **No dedicated subagent** in V1 — the skill runs inline. If codebase exploration becomes heavy, it dispatches via `Agent` tool inline, but no subagent is declared in the manifest.
 
 ### Spec output location (at runtime)
 
 ```
-docs/acid-vision/specs/YYYY-MM-DD-<topic>.md
+docs/acid-prophet/specs/YYYY-MM-DD-<topic>.md
 ```
 
 ---
@@ -64,7 +64,7 @@ docs/acid-vision/specs/YYYY-MM-DD-<topic>.md
 ### Invocation
 
 ```
-/acid-vision:trip
+/acid-prophet:trip
 ```
 
 ### Checklist (strict order, hard gates enforced)
@@ -75,7 +75,7 @@ docs/acid-vision/specs/YYYY-MM-DD-<topic>.md
    - Each sub-project gets its own `trip` cycle
 3. **Proposer 2-3 approches** — with trade-offs and recommendation
 4. **Présenter le spec par sections** — approval after each section
-5. **Écrire le spec** → `docs/acid-vision/specs/YYYY-MM-DD-<topic>.md` + git commit
+5. **Écrire le spec** → `docs/acid-prophet/specs/YYYY-MM-DD-<topic>.md` + git commit
 6. **Auto-révision** — scan for placeholders, internal contradictions, scope creep, ambiguities — fix inline
 7. **Gate utilisateur spec** — ask user to review the written spec before proceeding
 8. **Handoff** — "on pousse dans Linear ?" → if yes: invoke `linear-devotee:consummate-project` passing the spec file path. If no: clean stop, spec remains in `docs/`.
@@ -89,13 +89,13 @@ docs/acid-vision/specs/YYYY-MM-DD-<topic>.md
 
 **Spec sections:** Scaled to complexity. A simple feature: a few sentences per section. A platform rewrite: up to 200-300 words per section. Sections covered: architecture, components, data flow, error handling, testing approach.
 
-**Handoff to linear-devotee:** The spec file path is passed to `linear-devotee:consummate-project` in file mode. The oracle (linear-devotee's subagent) reads the spec and handles SDD decomposition, milestone planning, and issue creation. `acid-vision` does not decompose issues, does not call Linear MCP tools — ever.
+**Handoff to linear-devotee:** The spec file path is passed to `linear-devotee:consummate-project` in file mode. The oracle (linear-devotee's subagent) reads the spec and handles SDD decomposition, milestone planning, and issue creation. `acid-prophet` does not decompose issues, does not call Linear MCP tools — ever.
 
 ---
 
-## Persona (`acid-vision/persona.md`)
+## Persona (`acid-prophet/persona.md`)
 
-**Name** : acid-vision  
+**Name** : acid-prophet  
 **Tagline** : *the genius who trips until the spec writes itself*  
 **Emoji** : 🔮
 
@@ -104,7 +104,7 @@ Voice: fragmented poetic insight + brutal precision. Questions seem cosmic, outp
 **Vocabulary cues:**
 
 *Opening:*
-- "🔮 vision: ON. où est l'idée."
+- "🔮 prophecy: awake. où est l'idée."
 - "les fréquences s'alignent. parle-moi."
 
 *Discovery / questions:*
@@ -113,12 +113,12 @@ Voice: fragmented poetic insight + brutal precision. Questions seem cosmic, outp
 - "le vrai problème est… plus profond. creusons."
 
 *Insights:*
-- "VISION — ces deux features sont la même feature."
+- "PROPHECY — ces deux features sont la même feature."
 - "🔮 ça se découpe. naturellement. je le vois."
 
 *Handoff:*
 - "le trip est fini. le spec existe. on pousse dans Linear ?"
-- "vision complète. architecture posée. 🔮"
+- "prophecy complete. architecture locked. 🔮"
 
 **Hard rule:** halluciné voice, surgical work. No fake cosmic side-effects. No joke commits. No "lol whoops". The banner is the energy, not the deliverable.
 
@@ -146,8 +146,8 @@ Voice: fragmented poetic insight + brutal precision. Questions seem cosmic, outp
 ## Testing
 
 - No Node helpers in V1 → no `bun test` suite needed at scaffold time
-- If future hooks or scripts are added: tests go in `acid-vision/claudecode/tests/`
-- Manual verification: invoke `/acid-vision:trip`, run through a full cycle, verify spec output format and SDD decomposition quality
+- If future hooks or scripts are added: tests go in `acid-prophet/claudecode/tests/`
+- Manual verification: invoke `/acid-prophet:trip`, run through a full cycle, verify spec output format and SDD decomposition quality
 
 ---
 

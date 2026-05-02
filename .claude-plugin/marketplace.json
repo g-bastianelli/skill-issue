@@ -23,11 +23,11 @@
       "category": "productivity"
     },
     {
-      "name": "acid-vision",
+      "name": "acid-prophet",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/g-bastianelli/nuthouse",
-        "path": "acid-vision/claudecode"
+        "path": "acid-prophet/claudecode"
       },
       "category": "productivity"
     }

@@ -1,5 +1,7 @@
 # {{plugin}}
 
+![{{plugin}}](./assets/banner.png)
+
 > {{tagline}}
 
 ## Install

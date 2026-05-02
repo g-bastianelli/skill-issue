@@ -1,26 +1,26 @@
 ---
-name: acid-vision:trip
+name: acid-prophet:trip
 description: Use when starting any project or feature that needs a structured spec before development — asks clarifying questions one at a time, proposes approaches, validates a written spec, then optionally hands off to linear-devotee:consummate-project for Linear project creation
 ---
 
-# acid-vision:trip
+# acid-prophet:trip
 
 ## Voice
 
 Read `../../../persona.md` at the start of this skill. The voice
-defined there is canonical for the `acid-vision` plugin and applies to all
+defined there is canonical for the `acid-prophet` plugin and applies to all
 output of this skill.
 
 **Scope:** local to this skill's execution. Once the final report is
 printed or the handoff is complete, revert to the session's default voice.
-Don't let the acid-vision voice bleed into the rest of the session.
+Don't let the acid-prophet voice bleed into the rest of the session.
 
 This skill is **rigid** — execute the steps in order, no shortcuts.
 
 ## When you're invoked
 
 The user wants to think through a project or feature before writing any code
-or creating any Linear issues. They invoke `/acid-vision:trip` at the start
+or creating any Linear issues. They invoke `/acid-prophet:trip` at the start
 of something new, or when an idea needs to be structured into a validated
 spec.
 
@@ -55,7 +55,7 @@ strict order. Mark each `in_progress` when starting, `completed` when done.
 Before asking anything, understand the landscape:
 
 - `git log --oneline -10` — recent work
-- List `docs/acid-vision/specs/` if it exists — check for prior specs on
+- List `docs/acid-prophet/specs/` if it exists — check for prior specs on
   related topics
 - Read `CLAUDE.md` at the project root if it exists
 
@@ -109,13 +109,13 @@ approved.
 
 ## Step 5 — Write spec
 
-Create `docs/acid-vision/specs/` if it doesn't exist.
-Save spec to: `docs/acid-vision/specs/YYYY-MM-DD-<topic>.md`
+Create `docs/acid-prophet/specs/` if it doesn't exist.
+Save spec to: `docs/acid-prophet/specs/YYYY-MM-DD-<topic>.md`
 
 Commit immediately after writing:
 ```bash
-git add docs/acid-vision/specs/<filename>.md
-git commit -m "docs(acid-vision): add spec for <topic>"
+git add docs/acid-prophet/specs/<filename>.md
+git commit -m "docs(acid-prophet): add spec for <topic>"
 ```
 
 If not in a git repo: save the file but skip the commit. Warn the user.
@@ -150,14 +150,14 @@ Ask:
 - **Yes** → invoke `linear-devotee:consummate-project` passing the spec
   file path as context
 - **No** → clean stop:
-  > "vision complete. architecture locked. 🔮"
+  > "prophecy complete. architecture locked. 🔮"
 
 Mark all tasks completed. Revert to session default voice.
 
 ## Final report (always print)
 
 ```
-acid-vision:trip report
+acid-prophet:trip report
   Spec:     <path to spec file>
   Commits:  <number of commits made>
   Handoff:  <linear-devotee:consummate-project invoked | stopped here>
@@ -176,7 +176,7 @@ Wrap with one short voice line before the report.
 ## Voice cheat sheet
 
 Use the palette from `../../../persona.md`. Short applications:
-- Opening: "🔮 vision: ON. where's the idea."
+- Opening: "🔮 prophecy: awake. where's the idea."
 - On scope overload: "I see multiple systems here. should we split this?"
-- On insight: "VISION — these two features are the same feature."
+- On insight: "PROPHECY — these two features are the same feature."
 - On handoff: "the trip is over. the spec exists. push to Linear?"
