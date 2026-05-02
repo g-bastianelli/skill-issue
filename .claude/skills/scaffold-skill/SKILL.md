@@ -92,6 +92,21 @@ AskUserQuestion, single-select:
 
 For each selected runtime, write the corresponding SKILL.md.
 
+**Template source:** Before generating any SKILL.md, read the matching template:
+- Claude Code runtime → `_templates/skill/claudecode/SKILL.md`
+- Codex runtime → `_templates/skill/codex/SKILL.md`
+
+This is the source of truth for file structure. Substitute these variables from interview answers:
+- `{{plugin}}` → parent plugin name
+- `{{skill}}` → skill name (action verb)
+- `{{description}}` → one-line description from interview
+- `{{persona_path}}` → relative path from skill dir to plugin's persona.md
+  (e.g. `../../../persona.md` for `claudecode/skills/<skill>/SKILL.md`)
+
+Do not invent structure. Generate only what the template provides, replacing
+`{{variables}}` and filling the `[bracketed]` creative sections with AI-generated
+content appropriate to the plugin's voice.
+
 ### 2a. Claude Code — `<PLUGIN>/claudecode/skills/<SKILL>/SKILL.md`
 
 **Frontmatter** (Claude Code = full prefix in `name`):
