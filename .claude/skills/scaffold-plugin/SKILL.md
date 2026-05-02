@@ -159,9 +159,18 @@ Generate `<plugin>/assets/BANNER_PROMPT.md` from
 `_templates/plugin/BANNER_PROMPT.md`. This is the source of truth for future
 image generation. It must tell the user/Codex to create a 3:1 README banner
 matching the existing nuthouse banners: visible persona/creature/being mascot,
-hand-drawn webcomic style, roomy negative space, pale textured background, no
-readable text unless exact English text is explicitly requested, and to keep
-any replaced nice banner as `assets/banner-old.png`.
+hand-drawn webcomic style, roomy negative space, background derived from the
+persona's world, functional props kept secondary, no readable text unless exact
+English text is explicitly requested, and to keep any replaced nice banner as
+`assets/banner-old.png`.
+
+Important banner semantics:
+- The scene comes from the persona's world first, not a generic dev room and
+  not the task domain alone.
+- If the persona's relationship points at the user (devotee, servant,
+  worshipper, court jester, bodyguard, etc.), the user is the central power
+  but stays offscreen, implied, or abstract. Never invent a competing deity,
+  boss, or second mascot.
 
 ### 2b. `<plugin>/persona.md`
 
@@ -319,8 +328,12 @@ Generate this from `_templates/plugin/BANNER_PROMPT.md`.
 Rules:
 - The prompt must make the plugin persona/being the main subject.
 - The target is `assets/banner.png`, 3:1-ish README banner.
-- Style matches existing nuthouse banners: hand-drawn webcomic mascot, pale
-  textured background, roomy negative space, light brainrot energy.
+- Style matches existing nuthouse banners: hand-drawn webcomic mascot, roomy
+  negative space, readable persona-world background, light brainrot energy.
+- The setting comes from the persona's world first. Domain/task props are
+  secondary visual clues, not the whole scene.
+- For user-centered personas, keep the user offscreen/implied/abstract and do
+  not invent a competing deity, boss, or mascot.
 - Avoid photorealistic, dark neon poster, premium fantasy poster, or corporate
   SaaS polish.
 - No readable text in the image unless the user explicitly provides exact

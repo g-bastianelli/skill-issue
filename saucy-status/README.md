@@ -1,6 +1,6 @@
 # saucy-status
 
-<p align="center"><img src="./banner.jpeg" width="400" /></p>
+<p align="center"><img src="./assets/banner.png" width="640" /></p>
 
 > *Claude gooning on your context... it's beautiful*
 
