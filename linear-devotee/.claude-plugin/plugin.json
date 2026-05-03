@@ -5,7 +5,12 @@
     "name": "g-bastianelli"
   },
   "skills": "./claudecode/skills/",
-  "agents": "./claudecode/agents/",
+  "agents": [
+    "./claudecode/agents/acolyte.md",
+    "./claudecode/agents/chronicler.md",
+    "./claudecode/agents/oracle.md",
+    "./claudecode/agents/seer.md"
+  ],
   "hooks": {
     "SessionStart": [
       {

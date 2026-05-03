@@ -5,5 +5,7 @@
     "name": "g-bastianelli"
   },
   "skills": "./claudecode/skills/",
-  "agents": "./claudecode/agents/"
+  "agents": [
+    "./claudecode/agents/explorer.md"
+  ]
 }
