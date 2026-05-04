@@ -113,7 +113,7 @@ Generate the following files. **Use the Write tool** for each.
 
 **Template sources:** Before generating files, read the matching templates and use them as structure source of truth:
 - `persona.md` → `_templates/persona/persona.md`
-- `plugin.json` → `_templates/plugin/claudecode/.claude-plugin/plugin.json`
+- `plugin.json` → `_templates/plugin/.claude-plugin/plugin.json`
 - `plugin.toml` → `_templates/plugin/codex/.codex-plugin/plugin.toml`
 - `README.md` → `_templates/plugin/README.md`
 - `BANNER_PROMPT.md` → `_templates/plugin/BANNER_PROMPT.md`
@@ -135,15 +135,26 @@ present verbatim from the template — do not omit or paraphrase them.
 For `claudecode` / `both`:
 ```
 <plugin>/
+<plugin>/.claude-plugin/         # plugin.json lives here, NOT under claudecode/
 <plugin>/assets/
 <plugin>/claudecode/
-<plugin>/claudecode/.claude-plugin/
 <plugin>/claudecode/skills/
 <plugin>/claudecode/agents/      # only if user later runs scaffold-agent
 <plugin>/claudecode/hooks/       # only if Q4 != none
 <plugin>/claudecode/data/        # only if Q4 != none
 <plugin>/claudecode/tests/
 ```
+
+> ⚠️ **Plugin root convention.** `.claude-plugin/` MUST sit at the
+> plugin root (`<plugin>/.claude-plugin/`), not nested inside
+> `claudecode/`. The marketplace `git-subdir` `path` is `<NAME>` (the
+> plugin root), so `persona.md`, `README.md`, `assets/`, and the
+> `codex/` sibling all ship in the install cache. If `.claude-plugin/`
+> were under `claudecode/`, the plugin root would be
+> `<plugin>/claudecode/` and `persona.md` (which skills read via
+> `../../../persona.md`) would be outside the cache → broken at
+> install. See `linear-devotee/` and `react-monkey/` for the canonical
+> layout.
 
 For `codex` / `both`:
 ```
@@ -231,34 +242,40 @@ strings are fun.
 After writing, voice the user: *"persona.md posée. à toi de remplir les
 TODO — c'est la voix de la créature, je ne peux pas la deviner pour toi."*
 
-### 2c. `<plugin>/claudecode/.claude-plugin/plugin.json`
+### 2c. `<plugin>/.claude-plugin/plugin.json`
+
+Plugin root = `<plugin>/`. The `skills` field MUST point to
+`./claudecode/skills/` (relative to the plugin root) — without it the
+loader's default discovery won't find skills nested under `claudecode/`.
 
 Minimal (no hooks):
 ```json
 {
   "name": "<NAME>",
   "description": "<DESCRIPTION>",
-  "author": {
-    "name": "g-bastianelli"
-  }
+  "author": { "name": "g-bastianelli" },
+  "skills": "./claudecode/skills/"
 }
 ```
 
-With hooks (Q4 != none) — add a `hooks` block per selected event. Pattern
-from `linear-devotee/claudecode/.claude-plugin/plugin.json`:
+With hooks (Q4 != none) — add a `hooks` block per selected event. Hook
+command paths use `${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/...` because
+the plugin root is `<plugin>/`, not `<plugin>/claudecode/`. Pattern
+from `linear-devotee/.claude-plugin/plugin.json`:
 
 ```json
 {
   "name": "<NAME>",
   "description": "<DESCRIPTION>",
   "author": { "name": "g-bastianelli" },
+  "skills": "./claudecode/skills/",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/session-start.mjs\""
           }
         ]
       }
@@ -268,7 +285,7 @@ from `linear-devotee/claudecode/.claude-plugin/plugin.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-submit.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/prompt-submit.mjs\""
           }
         ]
       }
@@ -276,6 +293,9 @@ from `linear-devotee/claudecode/.claude-plugin/plugin.json`:
   }
 }
 ```
+
+When `scaffold-agent` adds a dedicated agent later, it will append an
+`"agents": ["./claudecode/agents/<name>.md"]` array to this manifest.
 
 Only include the events the user selected.
 
@@ -342,7 +362,7 @@ Rules:
 
 Reference the canonical implementations rather than copying them blindly:
 
-- `<plugin>/claudecode/hooks/state.mjs` — copy `linear-devotee/claudecode/hooks/state.mjs` **verbatim** as a starter (`readState` / `writeState` / `cleanupOldStates`). Then strip the `extractIssueId` helper at the bottom (Linear-specific) — the user adds their own domain helpers.
+- `<plugin>/claudecode/hooks/state.mjs` — copy `linear-devotee/claudecode/hooks/state.mjs` **verbatim** as a starter (`readState` / `writeState` / `cleanupOldStates`). Then strip the `extractIssueId` helper at the bottom (Linear-specific) — the user adds their own domain helpers. **Note:** `${CLAUDE_PLUGIN_ROOT}` resolves to `<plugin>/` (the plugin root), so this file is reachable via `${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/state.mjs` — keep that exact prefix in any future hook command path.
 - `<plugin>/claudecode/hooks/session-start.mjs` (only if SessionStart selected) — adapt `linear-devotee/claudecode/hooks/session-start.mjs`. Keep:
   - `process.env.CLAUDE_PLUGIN_ROOT` guard.
   - `cleanupOldStates(PLUGIN_ROOT, 7)` call.
@@ -373,16 +393,22 @@ reorder existing entries). Use the `git-subdir` source pattern:
   "source": {
     "source": "git-subdir",
     "url": "https://github.com/g-bastianelli/nuthouse",
-    "path": "<NAME>/claudecode"
+    "path": "<NAME>"
   },
   "category": "<CATEGORY>"
 }
 ```
 
-For codex-only plugins, use `path: "<NAME>/codex"` (and skip the
-claudecode entry). For `both`, **add two entries** — one per runtime —
-following the existing convention if a precedent exists; otherwise ask
-the user.
+The `path` is the **plugin root** (`<NAME>`), not a runtime subfolder.
+This is what ships in the install cache — including `persona.md`,
+`README.md`, `assets/`, and the `codex/` sibling. Do NOT write
+`<NAME>/claudecode` here: it would exclude `persona.md` from the cache
+and break every skill that reads `../../../persona.md`.
+
+For codex-only plugins, the convention is still `path: "<NAME>"` — the
+plugin root contains `.codex-plugin/` directly (see `linear-devotee/`).
+For `both`, a single entry at the plugin root is sufficient since both
+runtimes ship together.
 
 After writing, re-validate with `node -e "JSON.parse(require('node:fs').readFileSync('.claude-plugin/marketplace.json','utf8'))"` (Bash). If it fails, **panic-revert** by re-reading the original
 content from git (`git show HEAD:.claude-plugin/marketplace.json`) and
@@ -418,7 +444,7 @@ scaffold-plugin report
   Runtimes:       <claudecode | codex | both>
   Hooks:          <none | SessionStart | UserPromptSubmit | both>
   Persona:        <NAME>/persona.md (tagline: "<TAGLINE>", emoji: <EMOJI>) — TODO sections to fill
-  Manifest:       <NAME>/claudecode/.claude-plugin/plugin.json
+  Manifest:       <NAME>/.claude-plugin/plugin.json
   Marketplace:    added (category: <CATEGORY>)
   README (root):  updated
   Banner prompt:  <NAME>/assets/BANNER_PROMPT.md
