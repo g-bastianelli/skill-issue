@@ -79,7 +79,7 @@ last-reviewed: 2026-05-04
 ---
 ```
 
-The `linear-project` field is the pivot link. Without it, the skill attempts resolution via branch name (`feat/NUT-42-xxx` → `NUT-42`).
+The `linear-project` field is the pivot link. Without it, the skill attempts resolution via branch name: `feat/NUT-42-xxx` → issue `NUT-42` → Linear project parent of that issue → fetch all project issues. The branch name encodes an issue ID, not a project ID; the project is derived by querying Linear for the issue's parent project.
 
 **Drift report format**:
 
@@ -137,7 +137,11 @@ Principle: **fail loud, never silent**. If context is ambiguous, the skill asks 
 
 **Hard dependency**: `linear-devotee:consummate-project` must patch the spec file frontmatter with `linear-project: NUT-xxx` immediately after Linear project creation. Without this, `acid-prophet:drift` cannot resolve context automatically and always falls back to branch name convention.
 
-This is an explicit V1 implementation requirement — both `acid-prophet:drift` and the `linear-devotee:consummate-project` frontmatter patch must ship together for the full flow to work.
+This is an explicit V1 implementation requirement — all three pieces must ship together for the full flow to work:
+
+1. **`acid-prophet:trip`** updated to generate standardized frontmatter (`id`, `status`, `linear-project`, `verified-by`, `last-reviewed`) in every spec file it produces
+2. **`linear-devotee:consummate-project`** patching the spec file frontmatter with `linear-project: NUT-xxx` after project creation
+3. **`acid-prophet:drift`** new skill (this spec)
 
 ---
 
