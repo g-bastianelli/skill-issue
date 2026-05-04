@@ -83,6 +83,8 @@ Cover:
 - Testing approach.
 - Non-goals.
 
+Keep code minimal in specs. Interfaces, type signatures, JSON/DB schemas, and short pseudo-code (under 15 lines) belong here — they fix the contract. Concrete examples, full implementations, and test snippets live in Linear issues, not in the spec. The `scry` skill (and `scryer` audit) flag fenced blocks longer than 15 lines.
+
 ### Step 5 - Write the spec
 
 Create `docs/acid-prophet/specs/` if missing. Save the spec to:
@@ -111,14 +113,16 @@ last-reviewed: YYYY-MM-DD
 
 Use the current date from the session context. Do not run `git push` or `git rebase`. Do not commit unless the user explicitly asks for commits in the current session.
 
-### Step 6 - Self-review
+### Step 6 - Scry audit (auto-fix-trivial)
 
-Read the written spec and fix issues inline:
+Codex has no subagent dispatch, so run the `scry` skill's audit pipeline inline against the spec just written. The pipeline runs the same checks as the Claude Code `scryer` subagent: SDD-strict (frontmatter + required sections + EARS), reality (CLAUDE.md / package.json / referenced files), narrative (placeholder / consistency / scope / ambiguity), and style (heavy code blocks). See `acid-prophet/codex/skills/scry/SKILL.md` for the full pipeline definition.
 
-- Placeholder scan: no `TBD`, `TODO`, `FIXME`, `???`, or vague requirements.
-- Internal consistency: sections must not contradict each other.
-- Scope check: focused enough for one implementation cycle.
-- Ambiguity check: if a requirement could mean two things, choose one and state it.
+Apply each Auto-fix candidate to the spec via `acid-prophet/codex/lib/apply-frontmatter-patch.mjs` (and equivalent helpers for empty-section fills). Do not commit unless the user explicitly asks for commits in this session — surface the patched state and let the user commit.
+
+Then handle remaining findings:
+
+- BLOCKER findings remain — present them verbatim. Do not advance to Step 7. Loop on user resolution: edit the spec, re-run the audit, repeat until BLOCKER list is empty.
+- WARNING / INFO only — present them as a list. Acknowledged-and-deferred findings can be documented as inline comments in the spec or as items in Non-goals (user choice). Then advance to Step 7.
 
 ### Step 7 - User spec gate
 

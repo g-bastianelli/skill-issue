@@ -111,6 +111,14 @@ Sections to cover:
 - Testing approach
 - Non-goals (V1 scope)
 
+**Keep code minimal in specs.** Interfaces, type signatures, JSON/DB
+schemas, and short pseudo-code (under 15 lines) belong in the spec —
+they fix the contract. Concrete examples, full implementations, and
+test snippets do **not** belong here — they live in Linear issues
+where they get reviewed in context and rotate naturally as the code
+evolves. Specs that drown in code rot the moment the implementation
+moves; the auditor (`scryer`) flags fenced blocks longer than 15 lines.
+
 If the user doesn't approve a section: revise it. Don't move on until
 approved.
 
@@ -145,18 +153,48 @@ git commit -m "docs(acid-prophet): add spec for <topic>"
 
 If not in a git repo: save the file but skip the commit. Warn the user.
 
-## Step 6 — Self-review
+## Step 6 — Scryer audit (auto-fix-trivial)
 
-Read the spec with fresh eyes:
+Dispatch the `acid-prophet:scryer` subagent in `auto-fix-trivial` mode
+to audit the spec just written. The subagent runs the full check
+pipeline (SDD-strict, reality, narrative, style) and returns a
+structured report.
 
-1. **Placeholder scan** — any TBD, TODO, incomplete sections, vague
-   requirements? Fix inline.
-2. **Internal consistency** — do sections contradict each other?
-3. **Scope check** — focused enough for a single implementation cycle?
-4. **Ambiguity** — any requirement interpretable two ways? Pick one and
-   make it explicit.
+```
+Agent({
+  subagent_type: 'acid-prophet:scryer',
+  description: 'audit spec',
+  prompt: `SPEC_PATH: <absolute spec path from Step 5>
+PROJECT_ROOT: <git rev-parse --show-toplevel>
+MODE: auto-fix-trivial`,
+})
+```
 
-Fix inline. No need to re-review after fixing — just move on.
+Parse the result with
+`<PROJECT_ROOT>/acid-prophet/claudecode/lib/parse-scryer-report.mjs`.
+If parsing returns `null`, surface the raw output verbatim with one
+voice line and continue without auto-fixes.
+
+Apply each `Auto-fix candidates` entry to the spec via
+`<PROJECT_ROOT>/acid-prophet/claudecode/lib/apply-frontmatter-patch.mjs`
+(and equivalent helpers for empty-section fills). If any patches were
+applied, commit:
+
+```bash
+git add <spec path>
+git commit -m "docs(acid-prophet): scryer auto-fixes"
+```
+
+Never bypass the pre-commit hook (`--no-verify` is forbidden).
+
+Then handle remaining findings:
+- **BLOCKER findings remain** — present them to the user verbatim. Do
+  not advance to Step 7. Loop on user resolution: edit the spec, re-run
+  the scryer dispatch, repeat until BLOCKER list is empty.
+- **WARNING / INFO only** — present them as a list and ask the user
+  which to address. Acknowledged-and-deferred findings can be
+  documented as inline comments in the spec or as items in Non-goals
+  (user choice). Then advance to Step 7.
 
 ## Step 7 — User spec gate
 
