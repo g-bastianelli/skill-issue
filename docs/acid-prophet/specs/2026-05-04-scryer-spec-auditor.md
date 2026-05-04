@@ -104,9 +104,10 @@ differs. Helpers for applying auto-fix patches live in
    - Frontmatter present and parseable as YAML
    - Required keys present and non-empty: `id`, `status`,
      `linear-project`, `verified-by`, `last-reviewed`
-   - Required sections present: `Problem & Why`, `Solution`,
-     `Architecture`, `Components`, `Error handling`, `Testing`,
-     `Non-goals`
+   - Required sections present (matched by heading prefix, case-insensitive):
+     `Problem`, `Solution`, `Architecture`, `Components`,
+     `Error handling`, `Testing`, `Non-goals`. Variants like
+     `Components / data flow` or `Testing approach` match by prefix.
    - If an `Acceptance` section is present, validate EARS syntax:
      `WHEN <trigger>, THE SYSTEM SHALL <behavior>` or
      `IF <condition>, THE SYSTEM SHALL <behavior>`
@@ -221,7 +222,10 @@ Replace current inline review with:
   malformed bullets (skipped, not thrown).
 
 Both live under `acid-prophet/<runtime>/lib/` and ship with `bun test`
-coverage.
+coverage. This `lib/` convention is introduced by this spec — it is
+the shared location for Node helpers reused across multiple skills of
+the same plugin (existing single-skill plugins like `linear-devotee`
+colocate helpers with hooks; `acid-prophet` needs cross-skill sharing).
 
 ## Error handling
 
@@ -257,11 +261,14 @@ coverage.
   the user with voice line and wait for resolution.
 - Pre-commit hook never bypassed.
 
-**Hard rules (all three):**
-- Never `git push`, `git rebase`, `git commit --amend` (only NEW
-  commits).
-- Never mutate Linear issues, projects, milestones.
-- Never modify any file outside `docs/acid-prophet/specs/`.
+**Hard rules:**
+- `scryer` is read-only: never writes any file. Tools allowlist
+  excludes `Edit` and `Write`.
+- `scry` and `trip` Step 6 only ever modify files under
+  `docs/acid-prophet/specs/` (the spec being audited).
+- None of the three: `git push`, `git rebase`, `git commit --amend`
+  (only NEW commits).
+- None of the three: Linear mutation (issues, projects, milestones).
 
 ## Testing
 
