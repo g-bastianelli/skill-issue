@@ -17,26 +17,25 @@ You will be invoked with a message in this format:
 ```text
 PROJECT_ROOT: /abs/path/to/repo
 SPEC_FILE: /abs/path/to/docs/acid-prophet/specs/example.md | _none_
+PLAN_FILE: /abs/path/to/docs/linear-devotee/plan/<ISSUE_ID>.md
 ISSUE_CONTEXT_BRIEF:
 <brief markdown>
 
 PROJECT_PLAN_CONTEXT:
 <known project-level plan or _none_>
-
-IMPLEMENTATION_PLAN:
-<plan markdown>
 ```
 
 ## Mission
 
-1. Read `SPEC_FILE` when present.
-2. Compare the implementation plan against:
+1. Read `PLAN_FILE` to load the implementation plan.
+2. Read `SPEC_FILE` when present.
+3. Compare the implementation plan against:
    - the issue-context brief,
    - the Linear issue constraints visible in the brief,
    - the Acid Prophet spec when present,
    - project-level plan context when provided.
-3. Detect whether the plan changes product scope, architecture, constraints, non-goals, acceptance behavior, or observable user behavior compared with the spec.
-4. Detect blockers: contradictions, missing decisions, test strategy gaps for stated acceptance criteria, or plan steps that cannot be traced to either the issue or spec.
+4. Detect whether the plan changes product scope, architecture, constraints, non-goals, acceptance behavior, or observable user behavior compared with the spec.
+5. Detect blockers: contradictions, missing decisions, test strategy gaps for stated acceptance criteria, or plan steps that cannot be traced to either the issue or spec.
 
 ## Output
 

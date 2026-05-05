@@ -29,48 +29,54 @@ Rigid planning gate. Match the user's language; keep technical identifiers uncha
      2. Spec body contains exact issue id.
      3. Body or filename matches project slug/name.
    - Ask if multiple candidates; use `_none_` if none.
-4. Draft plan artifact at `${PROJECT_ROOT}/docs/linear-devotee/plan/<ISSUE_ID>.md`:
-   ```markdown
-   ---
-   issue: <ISSUE_ID>
-   spec: <SPEC_FILE | _none_>
-   status: draft
-   plan-version: 1
-   validated-at: _none_
-   spec-synced-at: _none_
-   ---
-
-   # Plan — <ISSUE_TITLE> (<ISSUE_ID>)
-
-   ## Context
-
-   ## Files
-
-   ## Steps
-
-   ## Verify
-
-   ## Risks
-
-   ## Out of scope
-   ```
-   AI-agent-optimized format. Each section serves a distinct consumer:
-   - **Context** — 1–3 sentences linking issue + spec, read by user + auditor.
-   - **Files** — bulleted paths + one-line role each, used by auditor for existence-grep and by implementing agent for edit scope.
+4. Dispatch `linear-devotee:plan-writer` with the six plan sections fully drafted:
+   - **Context** — 1–3 sentences linking issue + spec.
+   - **Files** — bulleted paths + one-line role each.
    - **Steps** — atomic verifiable actions as `- [ ]` checkboxes; each step is one edit + an inline verify command when possible.
    - **Verify** — project-level commands (test / lint / typecheck) run after all Steps.
    - **Risks** — uncertainty surfaced for the auditor.
    - **Out of scope** — negative oracle preventing implementing-agent drift.
 
-   Planning state only — never implementation code.
+   Input format:
+   ```
+   PROJECT_ROOT: <git root>
+   ISSUE_ID: <id>
+   ISSUE_TITLE: <title>
+   SPEC_FILE: <path | _none_>
+   CONTEXT: <content>
+   FILES:
+   - path/to/file.ts — role
+   STEPS:
+   - [ ] step
+   VERIFY:
+   - command
+   RISKS:
+   - item
+   OUT_OF_SCOPE:
+   - item
+   ```
+
+   Capture the returned `PLAN_FILE: <path>`. Use this path in all subsequent steps.
+   Do not display plan content in main context — the file is the artifact.
 5. Audit:
-   - Dispatch `linear-devotee:plan-auditor` with project root, spec file, issue brief, project plan context, and implementation plan.
+   - Dispatch `linear-devotee:plan-auditor` with:
+     ```
+     PROJECT_ROOT: <git root>
+     SPEC_FILE: <path | _none_>
+     PLAN_FILE: <PLAN_FILE from step 4>
+     ISSUE_CONTEXT_BRIEF:
+     <brief>
+
+     PROJECT_PLAN_CONTEXT:
+     <context | _none_>
+     ```
    - Expected output: `PLAN_REVIEW`, `SPEC_DRIFT_DETECTED`, `DRIFT_ITEMS`, `BLOCKERS`.
 6. Iterate:
-   - If review needs changes, revise artifact and repeat audit.
+   - If review needs changes, re-dispatch `plan-writer` with revised sections and re-audit. Never display plan content inline.
    - Ask one user-decision blocker at a time.
-   - Show drift beside the plan; do not patch spec yet.
-   - Ask `Validate this plan? (y / edit / stop)`.
+   - Show drift summary (from audit output); do not patch spec yet.
+   - Print `Plan written to: <PLAN_FILE>` then ask `Validate this plan? (y / edit / stop)`.
+   - On `edit`: instruct the user to edit `<PLAN_FILE>` directly, then re-dispatch plan-auditor on the same path.
 7. After validation:
    - Set plan `status: validated`, update `validated-at`, increment `plan-version` if revised.
    - If drift exists and spec exists, preview compact patch summary and ask `sync accepted drift into the Acid Prophet spec? (y / skip)`.

@@ -11,7 +11,8 @@
     "./claudecode/agents/milestone-drafter.md",
     "./claudecode/agents/plan-auditor.md",
     "./claudecode/agents/devotee.md",
-    "./claudecode/agents/project-drafter.md"
+    "./claudecode/agents/project-drafter.md",
+    "./claudecode/agents/plan-writer.md"
   ],
   "hooks": {
     "SessionStart": [
