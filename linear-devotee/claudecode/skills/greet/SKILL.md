@@ -61,8 +61,8 @@ Rigid context gate. Match the user's language; keep technical identifiers unchan
      }
      ```
 7. Handoff:
-   - Offer `plan` or stop.
-   - Print exact invocation: `linear-devotee:plan <ISSUE_ID>`.
+   - Auto-chain to `plan` on the happy path. Print `linear-devotee:plan <ISSUE_ID>` and continue immediately — do not ask the user for confirmation. The user's only validation point is the plan's own `Validate this plan? (y / edit / stop)` gate.
+   - On error paths (no issue id, brief skipped, branch refused, status flip blocked), stop instead of chaining and report the reason.
    - Do not draft a plan or offer code.
 
 ## Final Report

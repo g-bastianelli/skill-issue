@@ -39,7 +39,8 @@ Rigid context gate. Match the user's language; keep technical identifiers unchan
    - Never compare drift or patch specs here.
 7. Write `linear-devotee/codex/data/greet-<ISSUE_ID>.json` with issue id/title, brief markdown, spec file, branch, status, timestamp.
 8. Handoff:
-   - Print `linear-devotee:plan <ISSUE_ID>` or stop.
+   - Auto-chain to `plan` on the happy path. Print `linear-devotee:plan <ISSUE_ID>` and continue immediately — do not ask the user for confirmation. The user's only validation point is the plan's own `Validate this plan? (y / edit / stop)` gate.
+   - On error paths (no issue id, brief skipped, branch refused, status flip blocked), stop instead of chaining and report the reason.
    - Do not draft a plan or offer implementation.
 
 ## Final Report
