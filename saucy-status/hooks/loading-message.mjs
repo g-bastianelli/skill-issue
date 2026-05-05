@@ -1,19 +1,19 @@
-import fs from 'node:fs';
 import { createClaudeRuntime } from '../lib/runtime.mjs';
 
+if (!process.env.CLAUDE_PLUGIN_ROOT || !process.env.CLAUDE_PLUGIN_DATA) {
+  process.exit(0);
+}
+
 const runtime = createClaudeRuntime();
-const flagPath = runtime.dataPath('.state');
 const validModes = new Set(['off', 'saucy', 'gooning']);
 
-let mode = 'off';
-try {
-  const content = fs.readFileSync(flagPath, 'utf8').trim();
-  if (validModes.has(content)) mode = content;
-} catch {}
-
+const raw = runtime.readText(runtime.dataPath('.state'), '').trim();
+const mode = validModes.has(raw) ? raw : 'off';
 if (mode === 'off') process.exit(0);
 
-const messages = JSON.parse(fs.readFileSync(runtime.rootPath('data', 'messages.json'), 'utf8'));
+const messages = runtime.readJson(runtime.rootPath('data', 'messages.json'), null);
+if (!messages) process.exit(0);
+
 const pool = messages[mode] || messages.saucy;
 const message = pool[Math.floor(Math.random() * pool.length)];
 

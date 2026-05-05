@@ -4,6 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { createClaudeRuntime } from '../lib/runtime.mjs';
 
+if (!process.env.CLAUDE_PLUGIN_ROOT || !process.env.CLAUDE_PLUGIN_DATA) {
+  process.exit(0);
+}
+
 const runtime = createClaudeRuntime();
 const root = runtime.pluginRoot();
 const data = runtime.pluginData();
