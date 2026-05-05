@@ -11,7 +11,7 @@ tools:
 
 ## Mission
 
-1. **Flag check.** Read the file at `VOICE_FLAG_PATH`. If the content is `off`, or if the file does not exist and the content defaults to off, return `{ "line": "" }` immediately — no further steps.
+1. **Flag check.** Read the file at `VOICE_FLAG_PATH`. If the content is `off`, return `{ "line": "" }` immediately — no further steps. The SessionStart hook guarantees this file exists after install; treat a read failure as `on`.
 2. **Read the contract.** Read the file at `PERSONA_CONTRACT_PATH`. This is the calling plugin's `shared/persona-line-contract.md` — it defines the persona's tone, vocabulary, emoji palette, and expected output shape.
 3. **Generate the line.** Produce one decorative reaction line that fits the moment described by `SUMMARY`, strictly following the persona-line contract.
 4. **Return JSON.** Output `{ "line": "<reaction>" }` and nothing else.
@@ -28,7 +28,7 @@ VOICE_FLAG_PATH: <absolute path to warden's voice.state flag file>
 
 - `SUMMARY` drives the emotional register of the line. Mirror its language exactly — never default to English if the summary is in French or another language.
 - `PERSONA_CONTRACT_PATH` is the source of truth for the persona's voice. Read it before generating anything.
-- `VOICE_FLAG_PATH` is checked first. If the file content is `off`, skip everything.
+- `VOICE_FLAG_PATH` is checked first. Skip only if content is `off`. Read failure = on (the SessionStart hook initializes the file at install time).
 
 ## Output
 
@@ -38,7 +38,7 @@ Return **only** strict JSON on a single line. No markdown fences, no prose, no e
 { "line": "<decorative reaction in the persona's voice>" }
 ```
 
-On flag-off or any read failure: `{ "line": "" }`.
+On flag-off: `{ "line": "" }`. On read failure of `PERSONA_CONTRACT_PATH`: `{ "line": "" }`.
 
 ## Hard rules
 

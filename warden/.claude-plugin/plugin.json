@@ -3,5 +3,17 @@
   "description": "Centralized voice agent for nuthouse plugins — emits decorative persona lines; global on/off toggle silences all fun messages.",
   "author": { "name": "g-bastianelli" },
   "skills": "./claudecode/skills/",
-  "agents": ["./claudecode/agents/voice.md"]
+  "agents": ["./claudecode/agents/voice.md"],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/claudecode/hooks/session-start.mjs\""
+          }
+        ]
+      }
+    ]
+  }
 }
