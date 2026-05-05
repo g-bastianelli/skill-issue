@@ -8,15 +8,20 @@ let tmpRoot;
 let tmpData;
 const HOOK = path.resolve(import.meta.dir, '../hooks/prompt-submit.mjs');
 
-function runHook(stdinJson) {
+function runHook(stdinJson, env = {}, options = {}) {
+  const childEnv = {
+    ...process.env,
+    CLAUDE_PLUGIN_ROOT: tmpRoot,
+    CLAUDE_PLUGIN_DATA: tmpData,
+    ...env,
+  };
+  for (const name of options.deleteEnv ?? []) {
+    delete childEnv[name];
+  }
   return spawnSync('node', [HOOK], {
     input: JSON.stringify(stdinJson),
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      CLAUDE_PLUGIN_ROOT: tmpRoot,
-      CLAUDE_PLUGIN_DATA: tmpData,
-    },
+    env: childEnv,
   });
 }
 
@@ -51,6 +56,17 @@ test('does nothing when awaiting_prompt is false', () => {
   );
   expect(state.issue).toBe('ENG-12');
   expect(state.awaiting_prompt).toBe(false);
+  expectRootDataUnused();
+});
+
+test('exits silently without writing root data when CLAUDE_PLUGIN_DATA is missing', () => {
+  const res = runHook(
+    { session_id: 'sess-missing-data', prompt: 'fix ENG-99 please' },
+    {},
+    { deleteEnv: ['CLAUDE_PLUGIN_DATA'] },
+  );
+  expect(res.status).toBe(0);
+  expect(res.stdout).toBe('');
   expectRootDataUnused();
 });
 

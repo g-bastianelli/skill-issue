@@ -9,17 +9,21 @@ let tmpData;
 let tmpBin;
 const HOOK = path.resolve(import.meta.dir, '../hooks/session-start.mjs');
 
-function runHook(stdinJson, env = {}) {
+function runHook(stdinJson, env = {}, options = {}) {
+  const childEnv = {
+    ...process.env,
+    CLAUDE_PLUGIN_ROOT: tmpRoot,
+    CLAUDE_PLUGIN_DATA: tmpData,
+    PATH: `${tmpBin}:${process.env.PATH}`,
+    ...env,
+  };
+  for (const name of options.deleteEnv ?? []) {
+    delete childEnv[name];
+  }
   return spawnSync('node', [HOOK], {
     input: JSON.stringify(stdinJson),
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      CLAUDE_PLUGIN_ROOT: tmpRoot,
-      CLAUDE_PLUGIN_DATA: tmpData,
-      PATH: `${tmpBin}:${process.env.PATH}`,
-      ...env,
-    },
+    env: childEnv,
   });
 }
 
@@ -54,6 +58,23 @@ test('exits silently when not in a git repo', () => {
   );
   expect(state.in_repo).toBe(false);
   expect(state.greeted).toBe(true);
+  expectRootDataUnused();
+});
+
+test('exits silently without writing root data when CLAUDE_PLUGIN_DATA is missing', () => {
+  stubGit(`
+    case "$1" in
+      rev-parse) exit 0 ;;
+      branch) echo "g-bastianelli/eng-247-foo" ;;
+    esac
+  `);
+  const res = runHook(
+    { session_id: 'sess-missing-data' },
+    {},
+    { deleteEnv: ['CLAUDE_PLUGIN_DATA'] },
+  );
+  expect(res.status).toBe(0);
+  expect(res.stdout).toBe('');
   expectRootDataUnused();
 });
 

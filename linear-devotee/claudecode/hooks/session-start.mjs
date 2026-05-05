@@ -4,7 +4,10 @@ import fs from 'node:fs';
 import { createClaudeRuntime } from '../lib/runtime.mjs';
 import { cleanupOldStates, extractIssueId, writeState } from './state.mjs';
 
-const runtime = createClaudeRuntime();
+const pluginDataEnv = process.env.CLAUDE_PLUGIN_DATA;
+if (!pluginDataEnv) process.exit(0);
+
+const runtime = createClaudeRuntime({ pluginData: pluginDataEnv });
 const PLUGIN_DATA = runtime.pluginData();
 
 const DEFAULT_BRANCHES = new Set(['main', 'master', 'staging']);
