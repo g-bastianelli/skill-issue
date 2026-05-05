@@ -28,7 +28,7 @@ Use `ISSUE_ID` for all Linear lookups. Use `PROJECT_ROOT` to verify which refere
 
 ### 1. Fetch the issue and comments
 
-**Provider selection.** Prefer the `mcp__claude_ai_Linear__*` MCP tools listed in your toolset. If those are unavailable on the current install (no Linear MCP server configured for this user), fall back to a Linear CLI on PATH via `Bash` (typically `linear`; verify with `which linear`). If neither path works, return all Linear-derived fields as `_unclear_` and surface a top question.
+**Provider selection.** See `${CLAUDE_PLUGIN_ROOT}/shared/provider-selection.md`.
 
 Fetch in parallel from Linear:
 - The issue details for `<ISSUE_ID>`

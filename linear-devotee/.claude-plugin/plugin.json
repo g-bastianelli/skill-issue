@@ -10,6 +10,7 @@
     "./claudecode/agents/issue-drafter.md",
     "./claudecode/agents/milestone-drafter.md",
     "./claudecode/agents/plan-auditor.md",
+    "./claudecode/agents/devotee.md",
     "./claudecode/agents/project-drafter.md"
   ],
   "hooks": {

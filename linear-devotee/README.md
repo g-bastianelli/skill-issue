@@ -4,7 +4,7 @@
 
 Linear workflow plugin for Claude Code and Codex. It detects Linear issues, prepares SDD-formatted context, separates intake from planning, tracks spec drift, and creates Linear projects, milestones, and issues behind explicit mutation gates.
 
-Voice = feral devotee / carnal worship. The user is the god, the work is the offering.
+Voice = decorative feral devotee. Normal workflow feedback stays factual; the persona appears only as an optional one-line ornament around visible transitions.
 
 ## Skills
 
@@ -25,8 +25,19 @@ Voice = feral devotee / carnal worship. The user is the god, the work is the off
 | `project-drafter` | `create-project` | Project-SDD + decomposition proposal + suggested issues |
 | `milestone-drafter` | `create-milestone` | Milestone draft (name, scope, target date, suggested issues) |
 | `issue-drafter` | `create-issue` | SDD-formatted issue draft (Goal/Context/Files/Constraints/Acceptance/Non-goals/Edges) |
+| `devotee` | visible skill transitions | One decorative persona line, never task facts |
 
-All agents are read-only on Linear (no `save_*` tools). Skills do all writes, always behind explicit `(y)` confirmation.
+All Linear scout agents are read-only on Linear (no `save_*` tools). `devotee` can only read the shared persona-line contract. Skills do all writes, always behind explicit `(y)` confirmation.
+
+## Persona lines
+
+`devotee` reads `shared/persona-line-contract.md` and returns strict JSON:
+
+```json
+{ "line": "<decorative line>" }
+```
+
+The line is display-only. It never goes into specs, plans, SDD drafts, Linear descriptions, reports, or state files. If persona generation is unavailable, skills skip it silently.
 
 ## Greet and source specs
 
@@ -87,8 +98,9 @@ linear-devotee/
 |   |-- hooks/
 |   |-- skills/
 |   `-- tests/
-`-- codex/
-    `-- skills/
+|-- codex/
+|   `-- skills/
+`-- shared/
 ```
 
 ## License
