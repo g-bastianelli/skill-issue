@@ -10,23 +10,26 @@ if [ ! -e "$FLAG" ] || [ -L "$FLAG" ]; then
   exit 0
 fi
 
-SIZE=$(wc -c < "$FLAG" 2>/dev/null || echo 99)
+SIZE=$(wc -c < "$FLAG")
 if [ "$SIZE" -gt 10 ]; then
   exit 0
 fi
 
-MODE=$(tr -d '[:space:]' < "$FLAG" 2>/dev/null)
+MODE=$(tr -d '[:space:]' < "$FLAG")
 
 case "$MODE" in
   saucy|gooning) ;;
   *) exit 0 ;;
 esac
-MSG=$(node -e "
-  const fs = require('fs');
-  const data = JSON.parse(fs.readFileSync('$PLUGIN_ROOT/data/messages.json', 'utf8'));
-  const pool = data['$MODE'];
-  console.log(pool[Math.floor(Math.random() * pool.length)]);
-" 2>/dev/null || true)
+
+MSG=$(PLUGIN_ROOT="$PLUGIN_ROOT" MODE="$MODE" node -e '
+  const fs = require("fs");
+  const path = require("path");
+  const file = path.join(process.env.PLUGIN_ROOT, "data", "messages.json");
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  const pool = data[process.env.MODE];
+  process.stdout.write(pool[Math.floor(Math.random() * pool.length)]);
+' 2>/dev/null || true)
 
 if [ -z "$MSG" ]; then
   case "$MODE" in
