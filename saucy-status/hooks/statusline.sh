@@ -26,7 +26,7 @@ MSG=$(node -e "
   const data = JSON.parse(fs.readFileSync('$PLUGIN_ROOT/data/messages.json', 'utf8'));
   const pool = data['$MODE'];
   console.log(pool[Math.floor(Math.random() * pool.length)]);
-" 2>/dev/null)
+" 2>/dev/null || true)
 
 if [ -z "$MSG" ]; then
   case "$MODE" in
