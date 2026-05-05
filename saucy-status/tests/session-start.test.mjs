@@ -43,6 +43,10 @@ function writeSettings(payload) {
   );
 }
 
+function optIn(mode = 'saucy') {
+  fs.writeFileSync(path.join(tmpData, '.state'), mode);
+}
+
 test('exits silently when CLAUDE_PLUGIN_ROOT is missing', () => {
   const res = runHook({}, { deleteEnv: ['CLAUDE_PLUGIN_ROOT'] });
   expect(res.status).toBe(0);
@@ -57,7 +61,21 @@ test('exits silently when CLAUDE_PLUGIN_DATA is missing', () => {
   expect(res.stderr).toBe('');
 });
 
-test('emits install advice when settings.json is missing', () => {
+test('exits silently when user has not opted in (no .state file)', () => {
+  const res = runHook();
+  expect(res.status).toBe(0);
+  expect(res.stdout).toBe('');
+});
+
+test('exits silently when user mode is "off"', () => {
+  fs.writeFileSync(path.join(tmpData, '.state'), 'off');
+  const res = runHook();
+  expect(res.status).toBe(0);
+  expect(res.stdout).toBe('');
+});
+
+test('emits install advice when opted in but settings.json is missing', () => {
+  optIn();
   const res = runHook();
   expect(res.status).toBe(0);
   const out = JSON.parse(res.stdout);
@@ -65,7 +83,8 @@ test('emits install advice when settings.json is missing', () => {
   expect(out.hookSpecificOutput.additionalContext).toContain('/saucy install');
 });
 
-test('emits install advice when statusLine command does not point to this plugin', () => {
+test('emits install advice when opted in and statusLine command does not point here', () => {
+  optIn('gooning');
   writeSettings({ statusLine: { command: 'echo hello' } });
   const res = runHook();
   expect(res.status).toBe(0);
@@ -73,7 +92,8 @@ test('emits install advice when statusLine command does not point to this plugin
   expect(out.hookSpecificOutput.additionalContext).toContain('/saucy install');
 });
 
-test('exits silently when statusLine command points to this plugin', () => {
+test('exits silently when opted in and statusLine command points here', () => {
+  optIn();
   writeSettings({
     statusLine: { command: `${STATUSLINE_PATH} ${PLUGIN_ROOT} ${tmpData}` },
   });
