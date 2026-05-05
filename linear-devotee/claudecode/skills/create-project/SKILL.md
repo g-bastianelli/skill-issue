@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep
 
 Rigid runbook. Match the user's language; keep technical identifiers unchanged.
 
-> At visible transitions, dispatch `linear-devotee:devotee` with `SUMMARY: <≤15 words>` and print the returned `line` before normal output. Skip on failure.
+> At visible transitions, dispatch `linear-devotee:devotee` with `SUMMARY: <≤15 words, in the user's language>` and print the returned `line` before normal output. Skip on failure.
 
 ## Workflow
 

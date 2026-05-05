@@ -7,7 +7,7 @@ description: Use in Codex when a Linear issue identifier is supplied or detectab
 
 Rigid context gate. Match the user's language; keep technical identifiers unchanged.
 
-> At visible transitions, ask the cheapest available delegation path for one decorative line via `linear-devotee/shared/persona-line-contract.md` with `SUMMARY: <≤15 words>`; otherwise skip. Never block.
+> At visible transitions, ask the cheapest available delegation path for one decorative line via `linear-devotee/shared/persona-line-contract.md` with `SUMMARY: <≤15 words, in the user's language>`; otherwise skip. Never block.
 
 ## Workflow
 
