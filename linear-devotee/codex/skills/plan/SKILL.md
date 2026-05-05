@@ -23,7 +23,7 @@ Rigid planning gate. Match the user's language; keep technical identifiers uncha
    - Use greet `spec_file` if it exists.
    - Otherwise search `docs/acid-prophet/specs/` with priority: `linear-project:` project id, exact issue id, project slug/name.
    - Ask if ambiguous; use `_none_` if none.
-5. Draft/update `linear-devotee/codex/data/plans/<ISSUE_ID>.md`:
+5. Draft/update `linear-devotee/codex/data/plans/<ISSUE_ID>.md` in spec-readable prose form:
    ```markdown
    ---
    issue: <ISSUE_ID>
@@ -33,14 +33,47 @@ Rigid planning gate. Match the user's language; keep technical identifiers uncha
    validated-at: _none_
    spec-synced-at: _none_
    ---
-   # Plan - <ISSUE_ID>
-   ## Source Context
-   ## Implementation Plan
-   ## Files / Modules
+
+   # Plan — <ISSUE_TITLE> (<ISSUE_ID>)
+
+   ## Issue context
+
+   2–4 lines of prose: what triggered the work, the user-facing or system need, the source spec or business driver. Carry the "why" so the plan reads standalone.
+
+   ## Approach
+
+   Prose paragraph(s) describing the strategy: subsystems touched, order of operations, tradeoffs taken. The *shape* of the work, not a step list.
+
+   ### Steps
+
+   1. Ordered, concrete, verifiable actions.
+   2. …
+
+   ## Components / files
+
+   Group by subsystem when relevant. Each entry: path + one-line role + the specific change.
+
+   - `path/x.ts` — <role>; <change>
+
    ## Tests / Verification
-   ## Spec Drift
-   ## Open Questions
-   ## Change Log
+
+   How we know it works. Specific assertions, not "tests pass". Distinguish unit / integration / manual smoke.
+
+   ## Spec drift
+
+   Specific drifts requiring spec adjustment after validation. Otherwise `_none_`.
+
+   ## Open questions
+
+   Blocking ambiguities for the user.
+
+   ## Non-goals
+
+   Explicitly out of scope for this plan.
+
+   ## Change log
+
+   Plan iterations (v1 draft, v2 after audit, v3 validated…).
    ```
 6. Review:
    - Delegate to cheap read-only reviewer when available, passing repo root, spec file, issue brief, project context, and plan markdown.

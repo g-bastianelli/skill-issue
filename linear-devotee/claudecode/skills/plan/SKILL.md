@@ -28,7 +28,7 @@ Rigid planning gate. Match the user's language; keep technical identifiers uncha
      2. Spec body contains exact issue id.
      3. Body or filename matches project slug/name.
    - Ask if multiple candidates; use `_none_` if none.
-4. Draft plan artifact at `${CLAUDE_PLUGIN_ROOT}/data/plans/<ISSUE_ID>.md`:
+4. Draft plan artifact at `${CLAUDE_PLUGIN_ROOT}/data/plans/<ISSUE_ID>.md` in spec-readable prose form:
    ```markdown
    ---
    issue: <ISSUE_ID>
@@ -38,16 +38,49 @@ Rigid planning gate. Match the user's language; keep technical identifiers uncha
    validated-at: _none_
    spec-synced-at: _none_
    ---
-   # Plan - <ISSUE_ID>
-   ## Source Context
-   ## Implementation Plan
-   ## Files / Modules
+
+   # Plan — <ISSUE_TITLE> (<ISSUE_ID>)
+
+   ## Issue context
+
+   2–4 lines of prose: what triggered the work, the user-facing or system need, the source spec or business driver. Carry the "why" so the plan reads standalone.
+
+   ## Approach
+
+   Prose paragraph(s) describing the strategy: subsystems touched, order of operations, tradeoffs taken. The *shape* of the work, not a step list.
+
+   ### Steps
+
+   1. Ordered, concrete, verifiable actions.
+   2. …
+
+   ## Components / files
+
+   Group by subsystem when relevant. Each entry: path + one-line role + the specific change.
+
+   - `path/x.ts` — <role>; <change>
+
    ## Tests / Verification
-   ## Spec Drift
-   ## Open Questions
-   ## Change Log
+
+   How we know it works. Specific assertions, not "tests pass". Distinguish unit / integration / manual smoke.
+
+   ## Spec drift
+
+   Specific drifts requiring spec adjustment after validation. Otherwise `_none_`.
+
+   ## Open questions
+
+   Blocking ambiguities for the user.
+
+   ## Non-goals
+
+   Explicitly out of scope for this plan.
+
+   ## Change log
+
+   Plan iterations (v1 draft, v2 after audit, v3 validated…).
    ```
-   Keep it as planning state, not implementation code.
+   Aim for a document a reviewer can scan and understand without re-fetching the issue. Planning state only — never implementation code.
 5. Audit:
    - Dispatch `linear-devotee:plan-auditor` with project root, spec file, issue brief, project plan context, and implementation plan.
    - Expected output: `PLAN_REVIEW`, `SPEC_DRIFT_DETECTED`, `DRIFT_ITEMS`, `BLOCKERS`.
