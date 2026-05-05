@@ -2,7 +2,7 @@
 id: git-gremlin
 status: draft
 linear-project: _none_
-verified-by: _none_
+verified-by: guillaume.bastianelli@notom.io
 last-reviewed: 2026-05-06
 ---
 
