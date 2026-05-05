@@ -2,7 +2,7 @@
 
 ![linear-devotee](./assets/banner.png)
 
-Devoted Linear devotee — a Claude Code and Codex plugin that detects your Linear issue, sets it `In Progress` when approved by the runtime flow, and prepares an SDD-formatted brief so you don't code blind. Plus: a chainable trinity of skills that creates Linear projects, milestones, and issues from spec or vibe.
+Linear workflow plugin for Claude Code and Codex. It detects Linear issues, prepares SDD-formatted context, separates intake from planning, tracks spec drift, and creates Linear projects, milestones, and issues behind explicit mutation gates.
 
 Voice = feral devotee / carnal worship. The user is the god, the work is the offering.
 
@@ -10,21 +10,29 @@ Voice = feral devotee / carnal worship. The user is the god, the work is the off
 
 | Skill | What |
 |---|---|
-| `linear-devotee:greet` | Detects issue from branch or first prompt, sets In Progress, dispatches the `seer` subagent, returns an SDD brief, hands off to plan / clarifications / code / stop |
-| `linear-devotee:consummate-project` | Creates a Linear Project from a spec file or vibe-mode Q&A. Drafts a Project-SDD via the `oracle` subagent, previews, mutates Linear on approval, writes a chain-state file, can hand off to `bind-milestone` |
-| `linear-devotee:bind-milestone` | Creates a Linear Milestone — chained from `consummate-project` (auto-loads project + drafted phases) or standalone (project picker + freeform hint). Drafts via the `chronicler`, previews, mutates, can hand off to `bare-issue` |
-| `linear-devotee:bare-issue` | Creates a Linear Issue with a strict SDD-formatted description — chained from `bind-milestone` (cascades through suggested issues) or standalone (project + optional milestone + hint). Drafts via the `acolyte`, previews, mutates |
+| `linear-devotee:greet` | Detects issue from branch or first prompt, delegates issue context to a cheap read-only scout, sets In Progress when allowed, resolves the Acid Prophet source spec when present, writes greet context, then hands off to `plan`. It never writes implementation code |
+| `linear-devotee:plan` | Builds and iterates an implementation plan from greet context or an issue id, delegates plan review, flags spec drift, writes a validated plan artifact, and syncs accepted spec drift only after validation |
+| `linear-devotee:create-project` | Creates a Linear Project from a spec file or vibe-mode Q&A. Drafts a Project-SDD via the `project-drafter` subagent, previews, mutates Linear on approval, writes a chain-state file, can hand off to `create-milestone` |
+| `linear-devotee:create-milestone` | Creates a Linear Milestone — chained from `create-project` (auto-loads project + drafted phases) or standalone (project picker + freeform hint). Drafts via the `milestone-drafter`, previews, mutates, can hand off to `create-issue` |
+| `linear-devotee:create-issue` | Creates a Linear Issue with a strict SDD-formatted description — chained from `create-milestone` (cascades through suggested issues) or standalone (project + optional milestone + hint). Drafts via the `issue-drafter`, previews, mutates |
 
 ## Agents (read-only Linear scouts)
 
 | Agent | Used by | Drafts |
 |---|---|---|
-| `seer` | `greet` | SDD brief on an existing issue |
-| `oracle` | `consummate-project` | Project-SDD + decomposition proposal + suggested issues |
-| `chronicler` | `bind-milestone` | Milestone draft (name, scope, target date, suggested issues) |
-| `acolyte` | `bare-issue` | SDD-formatted issue draft (Goal/Context/Files/Constraints/Acceptance/Non-goals/Edges) |
+| `issue-context` | `greet`, `plan` | SDD brief on an existing issue |
+| `plan-auditor` | `plan` | Plan-vs-issue-vs-spec review with drift items and blockers |
+| `project-drafter` | `create-project` | Project-SDD + decomposition proposal + suggested issues |
+| `milestone-drafter` | `create-milestone` | Milestone draft (name, scope, target date, suggested issues) |
+| `issue-drafter` | `create-issue` | SDD-formatted issue draft (Goal/Context/Files/Constraints/Acceptance/Non-goals/Edges) |
 
 All agents are read-only on Linear (no `save_*` tools). Skills do all writes, always behind explicit `(y)` confirmation.
+
+## Greet and source specs
+
+`greet` is a context gate only. It never offers "code now", never drafts an implementation plan, and never edits implementation files. Linear issue/context loading is delegated to the `issue-context` scout so the main model only orchestrates, performs approved workflow mutations, resolves the source spec, and writes a small greet context artifact.
+
+`plan` owns planning. It loads greet context, resolves or verifies the Acid Prophet source spec, writes `data/plans/<issue>.md`, dispatches `plan-auditor`, and iterates until the plan is validated. Planning iterations only flag `SPEC_DRIFT_DETECTED`; they do not patch the spec. Once the user validates the plan, `plan` reviews the final plan against the issue and spec, patches accepted drift in one pass, updates `last-reviewed`, and runs the Acid Prophet audit when available.
 
 ## Detection (`greet` only)
 
@@ -39,9 +47,9 @@ Codex does not expose the same hook model, so `linear-devotee:greet` is invoked 
 
 ## Cascade chain
 
-`consummate-project` → `bind-milestone` → `bare-issue` form a hand-off chain. Each skill is also invocable standalone. Chain state lives at `${CLAUDE_PLUGIN_ROOT}/data/chain-${CLAUDE_SESSION_ID}.json` and carries the project_id, drafted milestones, drafted issues, and created-vs-pending counters.
+`create-project` → `create-milestone` → `create-issue` form a hand-off chain. Each skill is also invocable standalone. Chain state lives at `${CLAUDE_PLUGIN_ROOT}/data/chain-${CLAUDE_SESSION_ID}.json` and carries the project_id, drafted milestones, drafted issues, and created-vs-pending counters.
 
-The chronicler can annotate suggested issues with `[blocked-by: <idx>, <idx>]` to encode hard ordering inside a milestone. `bare-issue` then picks issues whose dependencies are already created first (topological cascade) and forwards the resolved Linear identifiers to `save_issue` as `blockedBy`, so the Linear UI shows the dep chain natively — and an empty `blocked_by` list means the issue is a safe entry point.
+The `milestone-drafter` can annotate suggested issues with `[blocked-by: <idx>, <idx>]` to encode hard ordering inside a milestone. `create-issue` then picks issues whose dependencies are already created first (topological cascade) and forwards the resolved Linear identifiers to `save_issue` as `blockedBy`, so the Linear UI shows the dependency chain natively — and an empty `blocked_by` list means the issue is a safe entry point.
 
 ## Requirements
 

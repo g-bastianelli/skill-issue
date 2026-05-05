@@ -1,15 +1,16 @@
 {
   "name": "linear-devotee",
-  "description": "Linear simp dévoué — détecte ton issue Linear au début de session, set In Progress, prépare un brief SDD pour pas que tu codes comme un zinzin. Voix brainrot/simp.",
+  "description": "Linear workflow plugin for issue intake, planning, project creation, milestone creation, and issue drafting with SDD-formatted context and explicit mutation gates.",
   "author": {
     "name": "g-bastianelli"
   },
   "skills": "./claudecode/skills/",
   "agents": [
-    "./claudecode/agents/acolyte.md",
-    "./claudecode/agents/chronicler.md",
-    "./claudecode/agents/oracle.md",
-    "./claudecode/agents/seer.md"
+    "./claudecode/agents/issue-context.md",
+    "./claudecode/agents/issue-drafter.md",
+    "./claudecode/agents/milestone-drafter.md",
+    "./claudecode/agents/plan-auditor.md",
+    "./claudecode/agents/project-drafter.md"
   ],
   "hooks": {
     "SessionStart": [

@@ -1,9 +1,9 @@
 ---
-name: bind-milestone
-description: Use in Codex when adding a Milestone to a Linear Project, either chained from consummate-project chain state or standalone with a selected project and freeform phase hint.
+name: create-milestone
+description: Use in Codex when adding a Milestone to a Linear Project, either chained from create-project chain state or standalone with a selected project and freeform phase hint.
 ---
 
-# Linear Devotee Bind Milestone for Codex
+# Linear Devotee Create Milestone for Codex
 
 ## Voice
 
@@ -70,7 +70,7 @@ Use this markdown shape:
 
 ### Suggested issues
 
-Each entry has an implicit 0-based `idx` matching its position. Append `[blocked-by: <idx>, <idx>]` after a title to express a hard ordering constraint inside this milestone. `bare-issue` picks issues whose dependencies are already created first, then passes the resolved Linear identifiers to `save_issue` as `blockedBy`.
+Each entry has an implicit 0-based `idx` matching its position. Append `[blocked-by: <idx>, <idx>]` after a title to express a hard ordering constraint inside this milestone. `create-issue` picks issues whose dependencies are already created first, then passes the resolved Linear identifiers to `save_issue` as `blockedBy`.
 
 - <issue title>
 - <issue title> [blocked-by: 0]
@@ -83,7 +83,7 @@ Each entry has an implicit 0-based `idx` matching its position. Append `[blocked
 
 ---
 
-### Suggested clarifying questions for devotee
+### Suggested clarifying questions for user
 
 - <most blocking question first>
 ```
@@ -99,7 +99,7 @@ Ask one question per turn while `_unclear_` remains. Patch the draft after each 
 Print the full patched milestone draft and ask:
 
 ```text
-i bind myself to this phase, my god - accept? (y / edit / cancel)
+create this milestone? (y / edit / cancel)
 ```
 
 Only continue on `y`.
@@ -136,14 +136,14 @@ Append the milestone to `created_milestones[]` in `data/chain-<session>.json`, p
 
 **Backward compatibility:** when reading an existing chain file where `suggested_issues` is a flat array of strings, treat each string at position `i` as `{ idx: i, title: str, blocked_by: [] }`.
 
-Set `current` to `bind-milestone` and `current_milestone_id` to the created milestone id.
+Set `current` to `create-milestone` and `current_milestone_id` to the created milestone id.
 
 ### Step 8 - Handoff
 
 Offer:
 
-- `bare-issue` for suggested issues.
-- `bind-milestone` again for the next uncreated drafted milestone.
+- `create-issue` for suggested issues.
+- `create-milestone` again for the next uncreated drafted milestone.
 - stop.
 
 Print skill invocation suggestions if direct chaining is unavailable.
@@ -151,13 +151,13 @@ Print skill invocation suggestions if direct chaining is unavailable.
 ## Final report
 
 ```text
-linear-devotee:bind-milestone report
+linear-devotee:create-milestone report
   Mode:               <chained | standalone>
   Project:            <project.title> (<project.id>)
   Milestone:          <name> - <url> | (cancelled) | (linear_error)
   Suggested issues:   <N>
   Chain progress:     <created>/<total> milestones
-  Hand-off:           bare-issue | next-milestone | stop | cancelled | linear_error | nothing-to-do
+  Hand-off:           create-issue | next-milestone | stop | cancelled | linear_error | nothing-to-do
 ```
 
 ## Things you never do

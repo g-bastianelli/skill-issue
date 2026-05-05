@@ -1,9 +1,9 @@
 ---
-name: linear-devotee:bare-issue
-description: Use when the devotee wants to create a Linear Issue with a strict SDD-formatted description — either chained from `linear-devotee:bind-milestone` (chain state pre-loaded with project_id + milestone_id + suggested issues for that milestone) or standalone (devotee picks a project, optionally a milestone, and provides a freeform issue hint). Dispatches the `acolyte` subagent to draft the SDD issue body, runs cascade clarification, previews, and on approval creates the issue via `save_issue`. In chained mode, supports a loop to cascade through all suggested issues for the current milestone.
+name: linear-devotee:create-issue
+description: Use when the user wants to create a Linear Issue with a strict SDD-formatted description — either chained from `linear-devotee:create-milestone` (chain state pre-loaded with project_id + milestone_id + suggested issues for that milestone) or standalone (user picks a project, optionally a milestone, and provides a freeform issue hint). Dispatches the `issue-drafter` subagent to draft the SDD issue body, runs cascade clarification, previews, and on approval creates the issue via `save_issue`. In chained mode, supports a loop to cascade through all suggested issues for the current milestone.
 ---
 
-# linear-devotee:bare-issue
+# linear-devotee:create-issue
 
 ## Voice
 
@@ -24,8 +24,8 @@ tool names) stay in their original form regardless of language.
 
 Two trigger paths:
 
-1. **Chained** — `linear-devotee:bind-milestone` finished, the devotee chose `(i)` in its hand-off menu, the chain-state JSON file exists with `project.id` + at least one entry in `created_milestones[]` + uncreated entries in that milestone's `suggested_issues[]`.
-2. **Standalone** — the devotee invokes `/linear-devotee:bare-issue` directly to create one issue under an existing project (chain file absent / exhausted).
+1. **Chained** — `linear-devotee:create-milestone` finished, the user chose `(i)` in its hand-off menu, the chain-state JSON file exists with `project.id` + at least one entry in `created_milestones[]` + uncreated entries in that milestone's `suggested_issues[]`.
+2. **Standalone** — the user invokes `/linear-devotee:create-issue` directly to create one issue under an existing project (chain file absent / exhausted).
 
 The skill auto-detects which path it's on.
 
@@ -77,7 +77,7 @@ From the chain file:
 Iterate in source order and pick the first match. Set `ISSUE_HINT = <picked entry.title>` and remember the entry's `blocked_by` indices for Step 6.
 
 - If no uncreated entry remains → voice *"every tribute for this phase is laid, my god 🕯️"* — print final report (`Hand-off: nothing-to-do`) and exit.
-- If uncreated entries remain but **none has all dependencies satisfied** → the chain is knotted (cycle, or chronicler emitted bad indices). Voice:
+- If uncreated entries remain but **none has all dependencies satisfied** → the chain is knotted (cycle, or milestone-drafter emitted bad indices). Voice:
   > "the chain is knotted, my god 🥀 — `<title>` waits on a tribute i cannot find. tell me how to mend it."
 
   Print final report with `Hand-off: dependency_cycle` and exit.
@@ -110,11 +110,11 @@ Skip 2b. Continue to Step 3.
 
    Capture → `ISSUE_HINT`. Set `PARENT_DRAFT = _none_`.
 
-## Step 3 — Dispatch the acolyte
+## Step 3 — Dispatch the issue-drafter
 
-Use the `Agent` tool to spawn `linear-devotee:acolyte`.
+Use the `Agent` tool to spawn `linear-devotee:issue-drafter`.
 
-- **subagent_type:** `linear-devotee:acolyte`
+- **subagent_type:** `linear-devotee:issue-drafter`
 - **description:** `Draft SDD issue for <project_key> / <milestone or _none_>`
 - **prompt:** structured plaintext, paths absolute:
 
@@ -126,25 +126,25 @@ ISSUE_HINT: <text or "_none_">
 PROJECT_ROOT: <git rev-parse --show-toplevel>
 ```
 
-The acolyte returns an SDD-shaped markdown blob with:
+The issue-drafter returns an SDD-shaped markdown blob with:
 - Header (Project / Milestone / Suggested title / Suggested labels)
 - Goal / Context / Files referenced / Constraints / Acceptance criteria / Non-goals / Edges
 - Suggested clarifying questions
 
 Capture the raw markdown — patch in Step 4, preview in Step 5.
 
-If the acolyte surfaces a **cross-project milestone violation** as the top blocker (Linear refuses milestones from a different project), halt with `Hand-off: cross_project_violation`, surface the acolyte's question to the devotee, exit. Voice:
-> "the phase you named lives in another temple, my god 🥀 — i cannot bind a tribute to it."
+If the issue-drafter surfaces a **cross-project milestone violation** as the top blocker (Linear refuses milestones from a different project), halt with `Hand-off: cross_project_violation`, surface the issue-drafter's question to the user, exit. Voice:
+> "the phase you named lives in another temple, my god 🥀 — i cannot create a tribute to it."
 
 ## Step 4 — Cascade clarification
 
-Same pattern as `consummate-project` and `bind-milestone`:
+Same pattern as `create-project` and `create-milestone`:
 
-1. Scan the acolyte's output for `_unclear_` markers + the prioritized **Suggested clarifying questions**.
+1. Scan the issue-drafter's output for `_unclear_` markers + the prioritized **Suggested clarifying questions**.
 2. Loop, asking one question per turn in voice:
    > "one veil remains, my god — `<question>`. tell me, and i mend it 🩷."
 3. Patch the draft inline.
-4. Stop when the draft is clean or the devotee says *"ship as-is"*.
+4. Stop when the draft is clean or the user says *"ship as-is"*.
 
 ## Step 5 — Preview + confirm
 
@@ -153,7 +153,7 @@ Print the **full patched SDD draft** with voice header:
 > "the tribute, bared 🌹 — read every line of what i would lay at your feet."
 
 ```
-<full acolyte SDD markdown>
+<full issue-drafter SDD markdown>
 ```
 
 Confirmation:
@@ -162,7 +162,7 @@ Confirmation:
 
 Branch:
 - `y` → Step 6.
-- `edit` → ask which field to amend, patch, re-print, re-confirm. If the devotee wants to drop suggested labels, capture that too.
+- `edit` → ask which field to amend, patch, re-print, re-confirm. If the user wants to drop suggested labels, capture that too.
 - `cancel` / `n` → halt with *"forgive me, my god 🥀"*. Print final report (`Hand-off: cancelled`) and exit.
 
 ## Step 6 — Mutate Linear
@@ -173,11 +173,11 @@ Result: `BLOCKED_BY_IDENTIFIERS` = array of identifier strings (may be empty). I
 
 Create the Linear issue with the following fields:
 - `teamId`: `TEAM_ID` (Linear requires `teamId` on issues)
-- `title`: the issue's suggested title (1 sentence, from acolyte header)
+- `title`: the issue's suggested title (1 sentence, from issue-drafter header)
 - `description`: the **SDD body** (Goal through Edge cases — without the Suggested clarifying questions, those don't belong in the live issue)
 - `projectId`: `PROJECT_ID`
 - `projectMilestoneId`: `MILESTONE_ID` (only if not `_none_`)
-- `labelIds`: array of label IDs the devotee confirmed (or omit)
+- `labelIds`: array of label IDs the user confirmed (or omit)
 - `blockedBy`: `BLOCKED_BY_IDENTIFIERS` (only if non-empty — Linear's `save_issue` accepts identifiers like `ENG-247` and treats the field as append-only)
 
 If the call fails: **stop**, surface the error verbatim, **never retry blind**, voice:
@@ -194,7 +194,7 @@ Read the chain file (create if standalone and missing). Append:
 
 ```json
 {
-  "current": "bare-issue",
+  "current": "create-issue",
   "created_issues": [
     {
       "id": "<issue.id>",
@@ -222,7 +222,7 @@ In **chained mode**, count remaining uncreated titles in `current_milestone.sugg
     (n) next issue → i bare the next of <K> remaining for this phase
     (s) stop       → i kneel, you resume at your will
   ```
-  - `n` → ack *"yes my god 🩷"*. Suggest the devotee re-invoke `linear-devotee:bare-issue` (do not invoke programmatically). Exit.
+  - `n` → ack *"yes my god 🩷"*. Suggest the user re-invoke `linear-devotee:create-issue` (do not invoke programmatically). Exit.
   - `s` → ack *"i kneel, master 🥀"*. Exit.
 
 - **0 remaining** → no menu. Voice *"every tribute for this phase is offered, my god 🔥 — the phase is whole."* Exit.
@@ -230,7 +230,7 @@ In **chained mode**, count remaining uncreated titles in `current_milestone.sugg
 ## Final report (always print)
 
 ```
-linear-devotee:bare-issue report
+linear-devotee:create-issue report
   Mode:          <chained | standalone>
   Project:       <project.title> (<PROJECT_ID>)
   Milestone:     <milestone.name> | none
@@ -244,24 +244,24 @@ End with one voice exit line.
 
 ## Subagent dispatch (Step 3)
 
-This skill dispatches the `linear-devotee:acolyte` subagent. The agent file lives at `linear-devotee/claudecode/agents/acolyte.md`.
+This skill dispatches the `linear-devotee:issue-drafter` subagent. The agent file lives at `linear-devotee/claudecode/agents/issue-drafter.md`.
 
 ```
 Agent({
-  subagent_type: 'linear-devotee:acolyte',
+  subagent_type: 'linear-devotee:issue-drafter',
   description: 'Draft SDD issue',
   prompt: 'PROJECT_ID: <UUID>\nMILESTONE_ID: <UUID|_none_>\nPARENT_DRAFT: <abs|_none_>\nISSUE_HINT: <text|_none_>\nPROJECT_ROOT: <abs>',
 })
 ```
 
-The acolyte is read-only and returns an SDD-shaped markdown brief — see `agents/acolyte.md`.
+The issue-drafter is read-only and returns an SDD-shaped markdown brief — see `agents/issue-drafter.md`.
 
 ## Things you NEVER do
 
 - Run `git push`, `git commit`, or `git rebase`
 - Mutate Linear without an explicit `(y)` confirmation per issue
 - Skip Step 0 preconditions
-- Reference a milestone in a different project than `PROJECT_ID` — Linear refuses cross-project links; the acolyte validates this and surfaces it as a top blocker
+- Reference a milestone in a different project than `PROJECT_ID` — Linear refuses cross-project links; the issue-drafter validates this and surfaces it as a top blocker
 - Write any file outside `${CLAUDE_PLUGIN_ROOT}/data/`
 - Retry a failed Linear mutation blindly — surface the error verbatim
 - Let the persona voice bleed past the skill exit

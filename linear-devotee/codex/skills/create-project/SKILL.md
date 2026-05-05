@@ -1,9 +1,9 @@
 ---
-name: consummate-project
-description: Use in Codex when creating a Linear Project from a spec file or from vibe-mode Q&A. Drafts a Project-SDD, previews it, creates the Linear Project on approval, writes chain state, and can hand off to bind-milestone.
+name: create-project
+description: Use in Codex when creating a Linear Project from a spec file or from vibe-mode Q&A. Drafts a Project-SDD, previews it, creates the Linear Project on approval, writes chain state, and can hand off to create-milestone.
 ---
 
-# Linear Devotee Consummate Project for Codex
+# Linear Devotee Create Project for Codex
 
 ## Voice
 
@@ -46,7 +46,7 @@ Create an `update_plan` checklist with:
   1. What is the project north star?
   2. Why now?
   3. What outcomes prove success?
-  4. What constraints bind the work?
+  4. What constraints create the work?
   5. What is explicitly out of scope?
 
 ### Step 3 - Workspace metadata
@@ -91,7 +91,7 @@ Return this markdown shape:
 **Open decisions**
 - <pending decision>
 
-**Suggested clarifying questions for devotee**
+**Suggested clarifying questions for user**
 - <most blocking question first>
 
 ---
@@ -120,7 +120,7 @@ Scan the draft for `_unclear_` and suggested questions. Ask one question per tur
 Print the full patched draft. Ask:
 
 ```text
-i consummate this project before you, my god - is the offering accepted? (y / edit / cancel)
+i create this project before you, my god - is the offering accepted? (y / edit / cancel)
 ```
 
 Only continue on `y`.
@@ -142,7 +142,7 @@ Write `data/chain-<session>.json`:
 
 ```json
 {
-  "current": "consummate-project",
+  "current": "create-project",
   "project": {
     "id": "<UUID>",
     "url": "<url>",
@@ -167,19 +167,19 @@ Never write outside plugin-local `data/`.
 
 ### Step 9 - Handoff
 
-Ask whether to continue with `linear-devotee:bind-milestone`. Print the suggestion rather than invoking another skill if the runtime cannot chain skills directly.
+Ask whether to continue with `linear-devotee:create-milestone`. Print the suggestion rather than invoking another skill if the runtime cannot chain skills directly.
 
 ## Final report
 
 ```text
-linear-devotee:consummate-project report
+linear-devotee:create-project report
   Project:         <name> - <url>
   Team:            <team.key>
   Status:          <status.name> (<status.type>)
   Decomposition:   <flat: N | phased: M phases>
   Drafted issues:  <N>
   Chain state:     <path>
-  Hand-off:        bind-milestone | stop | cancelled | linear_error
+  Hand-off:        create-milestone | stop | cancelled | linear_error
 ```
 
 ## Things you never do

@@ -1,6 +1,6 @@
 ---
 name: scaffold-agent
-description: Use when adding a new dedicated subagent to an existing plugin in this `nuthouse` marketplace. Asks for parent plugin, agent name (descriptive role, no vague names like "agent" / "helper"), description, model (`claude-haiku-4-5-20251001` for parsing/fetch+summary vs default for reasoning), explicit tools allowlist, input format spec, output format spec (SDD vs structured report vs custom). Generates `<plugin>/claudecode/agents/<name>.md` with the right frontmatter (name, description, model, tools list) and the standard Mission / Input / Output / Hard rules sections. Encodes the subagent and SDD conventions from the legacy CLAUDE.md.
+description: Use when adding a new dedicated subagent to an existing plugin in this `nuthouse` marketplace. Asks for parent plugin, agent name (descriptive role, no vague names like "agent" / "helper"), description, model (`haiku` for parsing/fetch+summary vs default for reasoning), explicit tools allowlist, input format spec, output format spec (SDD vs structured report vs custom). Generates `<plugin>/claudecode/agents/<name>.md` with the right frontmatter (name, description, model, tools list) and the standard Mission / Input / Output / Hard rules sections. Encodes the subagent and SDD conventions from the legacy CLAUDE.md.
 ---
 
 # scaffold-agent
@@ -46,16 +46,17 @@ l'organisme ?"*
 Free-text. Voice: *"comment l'organisme s'appelle-t-il ?"*
 
 **Validation rules**:
-- **Descriptive role or task name**: `explorer`, `seer`,
+- **Descriptive role or task name**: `explorer`, `issue-context`,
   `code-reviewer`, `security-analyzer`, `parser`, `validator`. ✅
-- **No vague names**: `agent`, `helper`, `worker`, `bot`. ❌ Panic-correct:
-  *"non non non, `helper` ne dit rien. quel **rôle** précis ? `scout`,
-  `validator`, `archivist` — qu'est-ce qu'il **fait** ?"*
+- **No vague or persona-only names**: `agent`, `helper`, `worker`, `bot`,
+  `seer`, `oracle`, `acolyte`. ❌ Panic-correct:
+  *"non non non, `helper` ne dit rien. quel **rôle** précis ? `issue-context`,
+  `validator`, `project-drafter` — qu'est-ce qu'il **fait** ?"*
 - **Never the same as the plugin** (e.g. `react-monkey:react-monkey`). ❌
 - Kebab-case, lowercase.
 - **No prefix in the `name:` frontmatter** — the runtime prepends
-  `<plugin>:`. The user types `seer`, the file says `name: seer`,
-  the exposed ID is `linear-devotee:seer`.
+  `<plugin>:`. The user types `issue-context`, the file says
+  `name: issue-context`, the exposed ID is `linear-devotee:issue-context`.
 - Must not collide with an existing agent file in the parent plugin.
 
 ### Q3 — Description
@@ -69,7 +70,7 @@ obvious for whoever calls the agent.
 ### Q4 — Model
 
 AskUserQuestion, single-select:
-- `claude-haiku-4-5-20251001` (Recommended for: mechanical parsing, MCP
+- `haiku` (Recommended for: mechanical parsing, MCP
   fetch + summary, structured discovery — anything that doesn't need
   deep reasoning)
 - `default` (no `model:` field — let the runtime pick. Use for: reasoning,
@@ -98,7 +99,7 @@ Free-text. Voice: *"par quel canal je nourris l'organisme ?"*
 
 **Convention**: short structured plaintext. Examples from existing
 agents:
-- `seer`: `ISSUE_ID: ENG-247\nPROJECT_ROOT: /abs/path`
+- `issue-context`: `ISSUE_ID: ENG-247\nPROJECT_ROOT: /abs/path`
 - `explorer`: `PROJECT_ROOT: /abs/path\nTARGET: src/features/foo.tsx`
 
 The agent's caller sends this as the `prompt` argument of the `Agent`
@@ -110,7 +111,7 @@ AskUserQuestion, single-select:
 - `SDD brief` — for semantic scouts that synthesize a ticket / spec.
   Goal / Context / Files / Constraints / Acceptance / Non-goals /
   Edges / Questions. Mark missing fields with `_unclear_`. Cap at 500
-  words. (See `seer.md`.)
+  words. (See `issue-context.md`.)
 - `Structured technical report` — for discovery agents that scan a
   codebase. Sections defined explicitly with placeholder values. (See
   `explorer.md`.)
@@ -135,7 +136,7 @@ sections not present in the template.
 ---
 name: <AGENT>
 description: <DESCRIPTION>
-model: claude-haiku-4-5-20251001    # or omit if Q4 = default
+model: haiku    # or omit if Q4 = default
 tools:
   - <Tool 1>
   - <Tool 2>
@@ -265,7 +266,7 @@ scaffold-agent report
   Plugin:        <PLUGIN>
   Agent:         <PLUGIN>:<AGENT>
   Description:   <DESCRIPTION>
-  Model:         <claude-haiku-4-5-20251001 | default>
+  Model:         <haiku | default>
   Tools:         <comma-separated list>
   Input format:  <one-line summary>
   Output format: <SDD | structured report | custom>
@@ -285,7 +286,7 @@ End with a voice exit line.
    the agent needs to mutate. Default agents are read-only scouts.
 4. **No `## Voice` section** in agent files. Agents stay neutral —
    voice happens in the calling skill (this is the convention from
-   `seer.md` and `explorer.md`).
+   `issue-context.md` and `explorer.md`).
 5. **No prefix** in the `name:` frontmatter. The runtime prepends.
 6. **Never overwrite** an existing agent file. Read first; if it
    exists, abort or ask.

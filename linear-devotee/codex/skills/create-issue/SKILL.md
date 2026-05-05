@@ -1,9 +1,9 @@
 ---
-name: bare-issue
-description: Use in Codex when creating a Linear Issue with a strict SDD-formatted description, either chained from bind-milestone chain state or standalone with a selected project, optional milestone, and issue hint.
+name: create-issue
+description: Use in Codex when creating a Linear Issue with a strict SDD-formatted description, either chained from create-milestone chain state or standalone with a selected project, optional milestone, and issue hint.
 ---
 
-# Linear Devotee Bare Issue for Codex
+# Linear Devotee Create Issue for Codex
 
 ## Voice
 
@@ -107,7 +107,7 @@ Use this markdown shape:
 **Edge cases & ambiguities detected**
 - <vague points, contradictions, TBDs>
 
-**Suggested clarifying questions for devotee**
+**Suggested clarifying questions for user**
 - <most blocking question first>
 ```
 
@@ -165,7 +165,7 @@ In chained mode, count remaining suggested issue titles for the current mileston
 ## Final report
 
 ```text
-linear-devotee:bare-issue report
+linear-devotee:create-issue report
   Mode:               <chained | standalone>
   Project:            <project.title> (<project.id>)
   Milestone:          <milestone.name> | none
