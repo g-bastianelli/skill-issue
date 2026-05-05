@@ -13,11 +13,6 @@
     "enabled": false
   },
   "files": {
-    "includes": [
-      "**",
-      "!.git",
-      "!node_modules",
-      "!**/lib/runtime.mjs"
-    ]
+    "includes": ["**", "!.git", "!node_modules"]
   }
 }
