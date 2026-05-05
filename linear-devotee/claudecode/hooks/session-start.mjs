@@ -2,13 +2,12 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { createClaudeRuntime } from '../lib/runtime.mjs';
-import { cleanupOldStates, extractIssueId, writeState } from './state.mjs';
+import { extractIssueId } from './state.mjs';
 
-const pluginDataEnv = process.env.CLAUDE_PLUGIN_DATA;
-if (!pluginDataEnv) process.exit(0);
+if (!process.env.CLAUDE_PLUGIN_DATA) process.exit(0);
 
-const runtime = createClaudeRuntime({ pluginData: pluginDataEnv });
-const PLUGIN_DATA = runtime.pluginData();
+const runtime = createClaudeRuntime();
+const statePath = (sessionId) => runtime.sessionStatePath('state', sessionId);
 
 const DEFAULT_BRANCHES = new Set(['main', 'master', 'staging']);
 
@@ -40,10 +39,10 @@ function inGitRepo() {
 const { session_id } = readStdinJson();
 if (!session_id) process.exit(0);
 
-cleanupOldStates(PLUGIN_DATA, 7);
+runtime.cleanupSessionState('state', 7);
 
 if (!inGitRepo()) {
-  writeState(PLUGIN_DATA, session_id, { greeted: true, in_repo: false });
+  runtime.writeJson(statePath(session_id), { greeted: true, in_repo: false });
   process.exit(0);
 }
 
@@ -67,7 +66,7 @@ const state = {
   needs_branch,
   in_repo: true,
 };
-writeState(PLUGIN_DATA, session_id, state);
+runtime.writeJson(statePath(session_id), state);
 
 if (issue) {
   process.stdout.write(
