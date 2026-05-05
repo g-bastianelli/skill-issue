@@ -61,7 +61,7 @@ bunx bun test <plugin>/                    # all plugin tests pass
 (cd .claude/hooks/tests && bunx bun test)  # persona-roulette tests pass
 bunx biome check .                          # lint clean
 node -e "JSON.parse(require('node:fs').readFileSync('.claude-plugin/marketplace.json', 'utf8'))"  # marketplace JSON valid
-grep -rn "superpower\|writing-plans" <plugin>/   # no superpowers leak
+grep -rn "writing-plans" <plugin>/   # no external workflow artifacts leak
 ```
 
 ---
@@ -74,7 +74,7 @@ Global guidance — applies everywhere, not just at scaffold time:
 - ❌ STAR format for briefs targeting an agent → **SDD**
 - ❌ Linear (or any external service) mutations without user confirmation, unless explicitly authorized and documented
 - ❌ `git push`, `git commit`, `git rebase` silently executed by a skill → **never**
-- ❌ `superpowers:*` dependency in the shipped plugin → **dev artifacts only, deleted before push**
+- ❌ External workflow/tool dependencies in the shipped plugin → **dev artifacts only, deleted before push**
 - ❌ Adding an npm/bun dep "just for this plugin" → **discuss first**
 - ❌ Bypassing pre-commit hook with `--no-verify` → **never**
 - ❌ Corporate/neutral plugin names → **the brainrot is the brand**
@@ -102,7 +102,7 @@ Repo-level: `.claude/hooks/persona-roulette.mjs` picks a random `persona.md` at 
 
 1. **Brainstorming** — naming (see Vibe), persona, scope.
 2. **SPEC** (optional) — colocate at `<plugin>/SPEC.md` if useful as a reference doc.
-3. **PLAN** — `superpowers:writing-plans` is fine as a **dev tool**. Plan lives in `docs/superpowers/plans/` during dev, **deleted before delivery**. No `superpowers:*` dependency must leak into the shipped plugin.
+3. **PLAN** — keep plans lightweight and local to the plugin work (`<plugin>/SPEC.md`, issue notes, or a temporary branch note). No external workflow artifacts or tool-specific dependencies must leak into the shipped plugin.
 4. **Scaffold** — `/scaffold-plugin`, then `/scaffold-skill`, then `/scaffold-agent` as needed. The skills enforce the conventions by construction.
 5. **TDD** for any Node helper or non-trivial logic (`bun test`).
 6. **Subagent-driven dev** — dispatch a fresh subagent for each heavy task, keep the main context for coordination only.

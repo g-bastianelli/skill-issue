@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import { cleanupOldStates, extractIssueId, writeState } from './state.mjs';
+import { createClaudeRuntime } from '../lib/runtime.mjs';
+import { extractIssueId } from './state.mjs';
 
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT;
-if (!PLUGIN_ROOT) process.exit(0);
+if (!process.env.CLAUDE_PLUGIN_DATA) process.exit(0);
+
+const runtime = createClaudeRuntime();
+const statePath = (sessionId) => runtime.sessionStatePath('state', sessionId);
 
 const DEFAULT_BRANCHES = new Set(['main', 'master', 'staging']);
 
@@ -36,10 +39,10 @@ function inGitRepo() {
 const { session_id } = readStdinJson();
 if (!session_id) process.exit(0);
 
-cleanupOldStates(PLUGIN_ROOT, 7);
+runtime.cleanupSessionState('state', 7);
 
 if (!inGitRepo()) {
-  writeState(PLUGIN_ROOT, session_id, { greeted: true, in_repo: false });
+  runtime.writeJson(statePath(session_id), { greeted: true, in_repo: false });
   process.exit(0);
 }
 
@@ -63,7 +66,7 @@ const state = {
   needs_branch,
   in_repo: true,
 };
-writeState(PLUGIN_ROOT, session_id, state);
+runtime.writeJson(statePath(session_id), state);
 
 if (issue) {
   process.stdout.write(

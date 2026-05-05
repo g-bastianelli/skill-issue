@@ -11,7 +11,7 @@ Those labels are gone (or at least, "Gooning" is). This plugin brings the vibe b
 - **Statusline** — message rotates at the bottom while Claude thinks
 - **Conversation** — random message surfaces in the transcript on every prompt
 
-Install via [`nuthouse`](../README.md#install) — restart Claude Code after, statusline auto-configures.
+Install the plugin via [`nuthouse`](../README.md#install), run `/saucy install` to configure the statusline explicitly, then restart Claude Code.
 
 ---
 
@@ -19,6 +19,8 @@ Install via [`nuthouse`](../README.md#install) — restart Claude Code after, st
 
 | Command | Effect |
 |---------|--------|
+| `/saucy install` | Configure the Claude Code statusline |
+| `/saucy uninstall` | Remove the statusline configuration |
 | `/saucy on` | Activate saucy mode |
 | `/saucy off` | Deactivate |
 | `/saucy gooning` | Switch to gooning mode |
@@ -35,11 +37,11 @@ Install via [`nuthouse`](../README.md#install) — restart Claude Code after, st
 
 ---
 
-State persists across sessions in `~/.claude/.saucy-status`.
+State persists across sessions in Claude plugin data as `.state`.
 
 ## Uninstall
 
 ```
+/saucy uninstall
 /plugin uninstall saucy-status@saucy-status
-rm ~/.claude/.saucy-status
 ```

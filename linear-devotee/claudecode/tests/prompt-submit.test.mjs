@@ -5,30 +5,45 @@ import os from 'node:os';
 import path from 'node:path';
 
 let tmpRoot;
+let tmpData;
 const HOOK = path.resolve(import.meta.dir, '../hooks/prompt-submit.mjs');
 
-function runHook(stdinJson) {
+function runHook(stdinJson, env = {}, options = {}) {
+  const childEnv = {
+    ...process.env,
+    CLAUDE_PLUGIN_ROOT: tmpRoot,
+    CLAUDE_PLUGIN_DATA: tmpData,
+    ...env,
+  };
+  for (const name of options.deleteEnv ?? []) {
+    delete childEnv[name];
+  }
   return spawnSync('node', [HOOK], {
     input: JSON.stringify(stdinJson),
     encoding: 'utf8',
-    env: { ...process.env, CLAUDE_PLUGIN_ROOT: tmpRoot },
+    env: childEnv,
   });
 }
 
 function writeStateFile(sessionId, state) {
   fs.writeFileSync(
-    path.join(tmpRoot, 'data', `state-${sessionId}.json`),
+    path.join(tmpData, `state-${sessionId}.json`),
     JSON.stringify(state),
   );
 }
 
+function expectRootDataUnused() {
+  expect(fs.existsSync(path.join(tmpRoot, 'data'))).toBe(false);
+}
+
 beforeEach(() => {
   tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'linear-devotee-hook-'));
-  fs.mkdirSync(path.join(tmpRoot, 'data'), { recursive: true });
+  tmpData = fs.mkdtempSync(path.join(os.tmpdir(), 'linear-devotee-data-'));
 });
 
 afterEach(() => {
   fs.rmSync(tmpRoot, { recursive: true, force: true });
+  fs.rmSync(tmpData, { recursive: true, force: true });
 });
 
 test('does nothing when awaiting_prompt is false', () => {
@@ -37,10 +52,22 @@ test('does nothing when awaiting_prompt is false', () => {
   expect(res.status).toBe(0);
   expect(res.stdout).toBe('');
   const state = JSON.parse(
-    fs.readFileSync(path.join(tmpRoot, 'data', 'state-sess-1.json'), 'utf8'),
+    fs.readFileSync(path.join(tmpData, 'state-sess-1.json'), 'utf8'),
   );
   expect(state.issue).toBe('ENG-12');
   expect(state.awaiting_prompt).toBe(false);
+  expectRootDataUnused();
+});
+
+test('exits silently without writing root data when CLAUDE_PLUGIN_DATA is missing', () => {
+  const res = runHook(
+    { session_id: 'sess-missing-data', prompt: 'fix ENG-99 please' },
+    {},
+    { deleteEnv: ['CLAUDE_PLUGIN_DATA'] },
+  );
+  expect(res.status).toBe(0);
+  expect(res.stdout).toBe('');
+  expectRootDataUnused();
 });
 
 test('detects identifier in first prompt and outputs additionalContext', () => {
@@ -57,11 +84,12 @@ test('detects identifier in first prompt and outputs additionalContext', () => {
   const out = JSON.parse(res.stdout);
   expect(out.hookSpecificOutput.additionalContext).toContain('ENG-42');
   const state = JSON.parse(
-    fs.readFileSync(path.join(tmpRoot, 'data', 'state-sess-2.json'), 'utf8'),
+    fs.readFileSync(path.join(tmpData, 'state-sess-2.json'), 'utf8'),
   );
   expect(state.issue).toBe('ENG-42');
   expect(state.source).toBe('prompt');
   expect(state.awaiting_prompt).toBe(false);
+  expectRootDataUnused();
 });
 
 test('first prompt without identifier closes the awaiting_prompt window', () => {
@@ -76,14 +104,16 @@ test('first prompt without identifier closes the awaiting_prompt window', () => 
   expect(res.status).toBe(0);
   expect(res.stdout).toBe('');
   const state = JSON.parse(
-    fs.readFileSync(path.join(tmpRoot, 'data', 'state-sess-3.json'), 'utf8'),
+    fs.readFileSync(path.join(tmpData, 'state-sess-3.json'), 'utf8'),
   );
   expect(state.awaiting_prompt).toBe(false);
   expect(state.issue).toBeNull();
+  expectRootDataUnused();
 });
 
 test('exits silently when no state file exists', () => {
   const res = runHook({ session_id: 'sess-missing', prompt: 'ENG-12' });
   expect(res.status).toBe(0);
   expect(res.stdout).toBe('');
+  expectRootDataUnused();
 });
