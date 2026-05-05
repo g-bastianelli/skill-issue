@@ -1,6 +1,6 @@
 ---
 name: frequency-drift
-description: Use on a feature branch before or during PR creation to detect drift between the PR diff and the SDD Acceptance criteria of the linked Linear project. Reads spec from repo or retro-engineers from Linear, compares against git diff, generates a drift report, and optionally posts it as a PR comment.
+description: Use on a feature branch before or during PR creation to detect drift between the PR diff and the SDD Acceptance/Constraints of the linked project. Prefers the repo spec markdown as primary truth, falls back to Linear only when no spec markdown is found, generates a drift report, and optionally posts it as a PR comment.
 ---
 
 # Acid Prophet: frequency-drift for Codex
@@ -37,23 +37,37 @@ Mark each item `in_progress` when starting and `completed` when done.
 
 ### Step 1 - Resolve context
 
-Find the Linear project ID and local spec file. Try in order:
+Find the Linear project ID and primary reference. Capture:
+- `PROJECT_ID`
+- `PROJECT_NAME` if known
+- `SPEC_FILE`
+- `PRIMARY_REFERENCE = spec file <path> | linear (no spec found)`
 
-1. Search `docs/acid-prophet/specs/` for `.md` files with a `linear-project:` frontmatter field that is not `_none_`. If found, capture the path and project ID.
-2. Read the current branch name. If it contains a Linear issue identifier (e.g. `feat/NUT-42-auth`), extract the issue ID and query Linear for its parent project.
-3. If neither resolves, ask: "🔮 les fréquences sont silencieuses — quel est l'ID du projet Linear ?"
+Use working tree contents. Try in order:
+
+1. Read the current branch name. If it contains a Linear issue identifier (e.g. `feat/NUT-42-auth`), capture it as `BRANCH_ISSUE_ID`. Query Linear for that issue only when needed to map it to a parent project ID/name.
+2. Search `docs/acid-prophet/specs/` for `.md` files. Select one project spec using the strongest unambiguous match: exact `linear-project:` frontmatter for `PROJECT_ID`, non-`_none_` `linear-project:` when no project is known yet, exact `PROJECT_ID` in markdown body, exact `BRANCH_ISSUE_ID` in markdown body, then filename/project slug convention. If found, set `SPEC_FILE` and `PRIMARY_REFERENCE = spec file <path>`.
+3. If no spec file was selected and `BRANCH_ISSUE_ID` exists, query Linear for the issue's parent project, then re-check the spec candidates for exact `PROJECT_ID`, exact `BRANCH_ISSUE_ID`, or project slug/name matches. If one candidate now matches, set `SPEC_FILE` and `PRIMARY_REFERENCE = spec file <path>`; otherwise set `PRIMARY_REFERENCE = linear (no spec found)`.
+4. If neither resolves, ask: "🔮 les fréquences sont silencieuses — quel est l'ID du projet Linear ?", then re-check the spec candidates for that exact `PROJECT_ID` or slug. If one candidate matches, set `SPEC_FILE` and `PRIMARY_REFERENCE = spec file <path>`; otherwise set `PRIMARY_REFERENCE = linear (no spec found)`.
+
+If `PRIMARY_REFERENCE` is a spec file, never replace it with Linear issue descriptions later.
 
 ### Step 2 - Fetch reference spec
 
-Using available Linear tools, fetch for the resolved project:
-- Project name and description
-- Attachments (titles and URLs)
-- Milestones (names and descriptions)
-- All issues: extract `Goal`, `Acceptance`, and `Constraints` sections from each issue description
+Branch on `PRIMARY_REFERENCE`.
 
-If a local spec file was found in Step 1, read it and merge with the Linear data — spec file provides structure, Linear issues provide Acceptance criteria as ground truth.
+If `PRIMARY_REFERENCE = spec file <path>`:
+- Read the spec markdown from the working tree.
+- Parse textual markdown sections into `REFERENCE_CONTEXT`; include `Goal` / `Problem & Why` / `Solution`, `Acceptance` or `Acceptance criteria`, `Constraints`, `Non-goals`, and `Edges` when present.
+- Preserve prose, bullets, and tables. Do not limit extraction to code blocks or Zod snippets.
+- Call Linear only for minimal project metadata needed in the report title (`get_project` for name, if `PROJECT_ID` is known).
+- Do not list project issues or fetch issue descriptions.
+- Set `REFERENCE_SOURCE = spec file <SPEC_FILE>`.
 
-If no spec file exists, warn: "🔮 pas de spec file — reconstitué depuis Linear"
+If `PRIMARY_REFERENCE = linear (no spec found)`:
+- Warn: "🔮 pas de spec file — reconstitué depuis Linear".
+- Using available Linear tools, fetch project name/description, attachments, milestones, and all issues; extract `Goal`, `Acceptance`, and `Constraints` sections from each issue description.
+- Set `REFERENCE_CONTEXT` to the reconstructed Linear context and `REFERENCE_SOURCE = linear (fallback)`.
 
 ### Step 3 - Get diff
 
@@ -62,7 +76,13 @@ Run `git diff main...HEAD`. If the diff is empty, stop with:
 
 ### Step 4 - Drift analysis
 
-Compare the diff against all Acceptance criteria from the issues. For each criterion, classify as:
+Compare the diff against `REFERENCE_CONTEXT`.
+
+If `REFERENCE_SOURCE` starts with `spec file`, the repo markdown is primary truth. Compare against textual Acceptance and Constraints from that markdown, and do not infer drift from stale Linear issue descriptions.
+
+If `REFERENCE_SOURCE = linear (fallback)`, compare against the reconstructed Linear context because no spec markdown was found.
+
+For each Acceptance criterion or normative Constraint found in the reference, classify as:
 - **CLEAN**: diff clearly satisfies it
 - **DRIFT**: diff contradicts or violates it (explain how, quote the diff)
 - **AMBIGUOUS**: diff partially addresses it or coverage is unclear (explain what's missing)
@@ -70,8 +90,8 @@ Compare the diff against all Acceptance criteria from the issues. For each crite
 
 Format:
 ```
-  issue <ID> (<title>)
-    Acceptance: "<criterion text>"
+  source <spec path | issue ID/title>
+    Acceptance/Constraint: "<criterion text>"
     → <classification and explanation>
 ```
 
@@ -79,7 +99,11 @@ End with: `<N> drift · <N> ambiguous · <N> clean · <N> unrelated`
 
 ### Step 5 - Report
 
-Print the full drift report inline with a voice line header.
+Print the full drift report inline with a voice line header and source line:
+
+```text
+Source: <REFERENCE_SOURCE>
+```
 
 If zero drifts and zero ambiguous: "les fréquences s'alignent. tout est propre. 🔮"
 
@@ -96,7 +120,8 @@ Print one short voice line from `persona.md`, then:
 acid-prophet:frequency-drift report
   Branch:      <current branch>
   Project:     <project name> (<project ID>)
-  Spec file:   <path | reconstructed from Linear>
+  Source:      spec file <path> | linear (fallback)
+  Spec file:   <path | _none_>
   Drift:       <N confirmed · N ambiguous · N clean · N unrelated>
   PR comment:  <posted | skipped | gh unavailable | no drift>
 ```
