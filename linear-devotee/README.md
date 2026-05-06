@@ -25,17 +25,21 @@ Voice = decorative feral devotee. Normal workflow feedback stays factual; the pe
 | `project-drafter` | `create-project` | Project-SDD + decomposition proposal + suggested issues |
 | `milestone-drafter` | `create-milestone` | Milestone draft (name, scope, target date, suggested issues) |
 | `issue-drafter` | `create-issue` | SDD-formatted issue draft (Goal/Context/Files/Constraints/Acceptance/Non-goals/Edges) |
-| `devotee` | visible skill transitions | One decorative persona line, never task facts |
 
-All Linear scout agents are read-only on Linear (no `save_*` tools). `devotee` can only read the shared persona-line contract. Skills do all writes, always behind explicit `(y)` confirmation.
+All Linear scout agents are read-only on Linear (no `save_*` tools). Skills do all writes, always behind explicit `(y)` confirmation.
 
 ## Persona lines
 
-`devotee` reads `shared/persona-line-contract.md` and returns strict JSON:
+Persona lines are owned by the separate `warden` plugin. At visible transitions,
+Claude Code skills dispatch `warden:voice` with
+`shared/persona-line-contract.md` and expect strict JSON:
 
 ```json
 { "line": "<decorative line>" }
 ```
+
+There is intentionally no plugin-local voice agent in `linear-devotee`; `warden`
+owns this path. If `warden` is not installed, skills skip persona lines silently.
 
 The line is display-only. It never goes into specs, plans, SDD drafts, Linear descriptions, reports, or state files. If persona generation is unavailable, skills skip it silently.
 
