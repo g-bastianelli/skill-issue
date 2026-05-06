@@ -1,11 +1,14 @@
 ---
-name: saucy
+name: saucy-status:saucy
 description: Control saucy-status mode. Use when user types /saucy [on|off|gooning|status|install|uninstall]. No arg → toggle off↔saucy.
+effort: low
 ---
+
+> At visible transitions, dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Print the returned `line` before normal output. Skip on failure.
 
 ## Voice
 
-Read `../../persona.md` at the start of this skill. The voice defined there is canonical for the `saucy-status` plugin and applies to all output of this skill (status reports, errors, mode-change announcements). The mechanical work below (flag toggle, state file write) stays serious — only the strings are saucy.
+Read `../../../persona.md` at the start of this skill. The voice defined there is canonical for the `saucy-status` plugin and applies to all output of this skill (status reports, errors, mode-change announcements). The mechanical work below (flag toggle, state file write) stays serious — only the strings are saucy.
 
 **Scope:** this voice is local to this skill's execution. Once the skill finishes (after the mode change is reported), revert to the session's default voice. Don't let the persona voice bleed into the rest of the session.
 
@@ -23,10 +26,10 @@ Parse the argument the user passed after `/saucy`:
 | `uninstall` | remove `statusLine` from `~/.claude/settings.json` when it points at `saucy-status`, then remove the mode flag |
 | (none) | toggle: `off` → `saucy`, else → `off` |
 
-Compute the plugin root as the directory 2 levels above this skill's base directory (`BASE_DIR/../..`). Run the snippet by passing the computed root as `CLAUDE_PLUGIN_ROOT` and passing through the runtime-provided `CLAUDE_PLUGIN_DATA`. If `CLAUDE_PLUGIN_DATA` is unavailable, abort with an error and do not write state.
+Compute the plugin root as the directory 3 levels above this skill's base directory (`BASE_DIR/../../..`). Run the snippet by passing the computed root as `CLAUDE_PLUGIN_ROOT` and passing through the runtime-provided `CLAUDE_PLUGIN_DATA`. If `CLAUDE_PLUGIN_DATA` is unavailable, abort with an error and do not write state.
 
 ```bash
-CLAUDE_PLUGIN_ROOT="$(cd "BASE_DIR/../.." && pwd)" CLAUDE_PLUGIN_DATA="$CLAUDE_PLUGIN_DATA" node -e "SNIPPET"
+CLAUDE_PLUGIN_ROOT="$(cd "BASE_DIR/../../.." && pwd)" CLAUDE_PLUGIN_DATA="$CLAUDE_PLUGIN_DATA" node -e "SNIPPET"
 ```
 
 Use this Node.js snippet, replacing `ARG` with the user's argument (or empty string) and `BASE_DIR` with the actual base directory path:
