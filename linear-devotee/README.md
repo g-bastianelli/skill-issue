@@ -4,7 +4,7 @@
 
 Linear workflow plugin for Claude Code and Codex. It detects Linear issues, prepares SDD-formatted context, separates intake from planning, tracks spec drift, and creates Linear projects, milestones, and issues behind explicit mutation gates.
 
-Voice = decorative feral devotee. Normal workflow feedback stays factual; the persona appears only as an optional one-line ornament around visible transitions.
+Voice = decorative feral devotee. Normal workflow feedback stays factual; the persona appears as an optional one-line ornament around every user-visible workflow transition.
 
 ## Skills
 
@@ -30,16 +30,21 @@ All Linear scout agents are read-only on Linear (no `save_*` tools). Skills do a
 
 ## Persona lines
 
-Persona lines are owned by the separate `warden` plugin. At visible transitions,
-Claude Code skills dispatch `warden:voice` with
+Persona lines are owned by the separate `warden` plugin. At every user-visible
+workflow transition, Claude Code skills try `warden:voice` with
 `shared/persona-line-contract.md` and expect strict JSON:
 
 ```json
 { "line": "<decorative line>" }
 ```
 
+Visible transitions are skill start, context resolved, user decision point,
+external mutation gate, handoff, recoverable failure, final report, and clean
+exit.
+
 There is intentionally no plugin-local voice agent in `linear-devotee`; `warden`
-owns this path. If `warden` is not installed, skills skip persona lines silently.
+owns this path. If `warden` is not installed, errors, returns malformed output,
+or voice is disabled, skills skip persona lines silently.
 
 The line is display-only. It never goes into specs, plans, SDD drafts, Linear descriptions, reports, or state files. If persona generation is unavailable, skills skip it silently.
 

@@ -18,5 +18,8 @@ test('Claude Code skills use warden for persona lines', () => {
     const body = fs.readFileSync(file, 'utf8');
     expect(body).not.toContain(OBSOLETE_VOICE_AGENT);
     expect(body).toContain('warden:voice');
+    expect(body).toContain('Voice cadence:');
+    expect(body).toContain('If `warden` is unavailable');
+    expect(body).toContain('Never make voice dispatch a precondition');
   }
 });

@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 Rigid drift-detection gate. Match the user's language; keep technical identifiers unchanged.
 
-> At visible transitions, dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Print the returned `line` before normal output. Skip on failure.
+> Voice cadence: at every user-visible workflow transition, try to dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Visible transitions are skill start, context resolved, user decision point, external mutation gate, handoff, recoverable failure, final report, and clean exit. Print the returned `line` only when non-empty. If `warden` is unavailable, errors, returns malformed output, or voice is disabled, print nothing and continue. Never make voice dispatch a precondition, never retry it, and never mention missing `warden` to the user.
 
 ## Workflow
 
@@ -24,15 +24,15 @@ Rigid drift-detection gate. Match the user's language; keep technical identifier
    - Set `PRIMARY_REFERENCE = spec file <path>` or `linear (no spec found)`. Spec file always wins; never overwrite with Linear context once set.
 3. Fetch reference:
    - **Spec file**: read `SPEC_FILE`; extract Goal/Problem, Solution, Acceptance, Constraints, Non-goals/Edges. Fetch only project name from Linear if needed (`mcp__claude_ai_Linear__get_project`).
-   - **Linear fallback** (no spec found): dispatch `warden:voice` with `SUMMARY: no spec file, falling back to Linear`; print the returned line. Then dispatch a general-purpose Agent to fetch project details, attachments, milestones, and all issue descriptions (Goal, Acceptance, Constraints sections). Capture as `REFERENCE_CONTEXT`.
-4. Get diff: `git diff main...HEAD`. If empty, dispatch `warden:voice` with `SUMMARY: empty diff, nothing to check`; print the returned line; print final report with `Drift: none (empty diff)`; exit.
+   - **Linear fallback** (no spec found): try `warden:voice` per the voice cadence with `SUMMARY: no spec file, falling back to Linear`. Then dispatch a general-purpose Agent to fetch project details, attachments, milestones, and all issue descriptions (Goal, Acceptance, Constraints sections). Capture as `REFERENCE_CONTEXT`.
+4. Get diff: `git diff main...HEAD`. If empty, try `warden:voice` per the voice cadence with `SUMMARY: empty diff, nothing to check`; print final report with `Drift: none (empty diff)`; exit.
 5. Drift analysis: dispatch a general-purpose Agent with `REFERENCE_CONTEXT`, `DIFF`, and `REFERENCE_SOURCE`. For each Acceptance criterion or normative Constraint, classify as CLEAN / DRIFT / AMBIGUOUS / UNRELATED. Format per finding: `source <path|id> — "<criterion>" → <classification + explanation>`. End with `<N> drift · <N> ambiguous · <N> clean · <N> unrelated`. Capture as `DRIFT_REPORT`.
 6. Report:
-   - Dispatch prophet with `SUMMARY: <N> drift <N> ambiguous found` (or `no drift found` if clean); print the returned line.
+   - Try `warden:voice` per the voice cadence with `SUMMARY: <N> drift <N> ambiguous found` (or `no drift found` if clean).
    - Print drift report inline.
    - If drifts or ambiguous exist and `gh` is available: ask the user if they want to post the report as a PR comment.
      - Yes → `gh pr comment --body "<DRIFT_REPORT>"`. On failure: surface error, suggest manual copy.
-     - No → dispatch `warden:voice` with `SUMMARY: drift report done, user stopped`; print the returned line; exit.
+     - No → try `warden:voice` per the voice cadence with `SUMMARY: drift report done, user stopped`; exit.
 
 ## Final Report
 

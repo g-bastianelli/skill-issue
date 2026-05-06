@@ -11,6 +11,21 @@ any plugin — and gives you a single toggle to silence all fun messages globall
 If warden is not installed, all voice dispatches in other plugins (`linear-devotee`,
 `acid-prophet`, etc.) fail silently. No errors, no drama. Just clean, professional output.
 
+## Dispatch cadence
+
+Plugins should try `warden:voice` at every user-visible workflow transition:
+skill start, context resolved, user decision point, external mutation gate,
+handoff, recoverable failure, final report, and clean exit.
+
+Do not call it for internal shell commands, hidden subagent work, or inside
+serious artifacts such as specs, plans, Linear descriptions, commit messages, or
+PR bodies.
+
+`warden` is optional infrastructure. If the plugin is missing, the dispatch
+fails, the flag file is unreadable, the output is malformed, or voice is off,
+the caller prints nothing and continues. Missing `warden` is never a workflow
+precondition.
+
 ## Skills
 
 | Skill | What it does |

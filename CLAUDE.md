@@ -25,6 +25,7 @@ New plugins follow this energy:
   - `acid-prophet` → see `acid-prophet/persona.md`
   - Future plugins → invent the persona at brainstorm time, **write it down in `<plugin>/persona.md`**, and apply it consistently across the plugin's skills. Do not redeclare the voice in this CLAUDE.md.
 - **Reports follow the voice**. The structure stays plain, the surrounding 1-2 lines are brainrot. Same skill, same voice end-to-end.
+- **Voice cadence matters**. Claude Code skills with `shared/persona-line-contract.md` should try `warden:voice` at every user-visible workflow transition: skill start, context resolved, user decision point, external mutation gate, handoff, recoverable failure, final report, and clean exit. Do not call it for internal shell commands, hidden subagent steps, or inside serious artifacts. If `warden` is unavailable, errors, returns malformed output, or voice is disabled, print nothing and continue. Missing `warden` is never a precondition failure and should never be mentioned to the user during the workflow.
 - **Hard rule**: actions stay serious, voice stays brainrot. No fantasy side-effects, no joke commits, no "lol whoops" failure modes. Only the *strings* are fun.
 - **Use emojis sparingly**. 🥺 / 👑 / 😔 / 🔥 land. Anything more is over-emoji and feels AI-slop.
 

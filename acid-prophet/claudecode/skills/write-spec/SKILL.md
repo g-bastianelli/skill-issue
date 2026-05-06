@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 Rigid spec-writing gate. Match the user's language; keep technical identifiers unchanged.
 
-> At visible transitions, dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Print the returned `line` before normal output. Skip on failure.
+> Voice cadence: at every user-visible workflow transition, try to dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Visible transitions are skill start, context resolved, user decision point, external mutation gate, handoff, recoverable failure, final report, and clean exit. Print the returned `line` only when non-empty. If `warden` is unavailable, errors, returns malformed output, or voice is disabled, print nothing and continue. Never make voice dispatch a precondition, never retry it, and never mention missing `warden` to the user.
 
 ## Workflow
 
@@ -35,14 +35,14 @@ Rigid spec-writing gate. Match the user's language; keep technical identifiers u
      PROJECT_ROOT: <git root>
      MODE: auto-fix-trivial
      ```
-   - Parse result with `<PROJECT_ROOT>/acid-prophet/claudecode/lib/parse-scryer-report.mjs`. If null: dispatch `warden:voice` with `SUMMARY: spec-auditor output malformed`, print the returned line, continue without auto-fixes.
+   - Parse result with `<PROJECT_ROOT>/acid-prophet/claudecode/lib/parse-scryer-report.mjs`. If null: try `warden:voice` per the voice cadence with `SUMMARY: spec-auditor output malformed`, then continue without auto-fixes.
    - Apply each auto-fix candidate via `apply-frontmatter-patch.mjs`. If patches applied, commit: `git commit -m "docs(acid-prophet): spec-auditor auto-fixes"`. Never use `--no-verify`.
    - **BLOCKER findings remain** → surface to user verbatim; loop (edit spec → re-run spec-auditor → repeat) until BLOCKER list is empty.
    - WARNING/INFO only → present list; let user choose which to address; then advance.
 8. User spec gate: ask user to review `<path>`. Wait. If changes: update spec, commit, re-run step 7.
 9. Handoff: ask the user if they want to push the spec to Linear.
    - Yes → invoke `linear-devotee:consummate-project` with spec path.
-   - No → dispatch `warden:voice` with `SUMMARY: write-spec complete, spec approved, no linear handoff`, print the returned line, exit.
+   - No → try `warden:voice` per the voice cadence with `SUMMARY: write-spec complete, spec approved, no linear handoff`, then exit.
 
 ## Final Report
 

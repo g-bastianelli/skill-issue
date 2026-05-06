@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 Rigid audit gate. Match the user's language; keep technical identifiers unchanged.
 
-> At visible transitions, dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Print the returned `line` before normal output. Skip on failure.
+> Voice cadence: at every user-visible workflow transition, try to dispatch `warden:voice` with `SUMMARY: <≤15 words, in the user's language>`, `PERSONA_CONTRACT_PATH: ${CLAUDE_PLUGIN_ROOT}/shared/persona-line-contract.md`, and `VOICE_FLAG_PATH: $HOME/.claude/nuthouse/voice.state`. Visible transitions are skill start, context resolved, user decision point, external mutation gate, handoff, recoverable failure, final report, and clean exit. Print the returned `line` only when non-empty. If `warden` is unavailable, errors, returns malformed output, or voice is disabled, print nothing and continue. Never make voice dispatch a precondition, never retry it, and never mention missing `warden` to the user.
 
 ## Workflow
 
@@ -23,8 +23,8 @@ Rigid audit gate. Match the user's language; keep technical identifiers unchange
    ```
    Capture full output as `RAW_REPORT`.
 3. Render report:
-   - Parse with `<PROJECT_ROOT>/acid-prophet/claudecode/lib/parse-scryer-report.mjs`. If null: dispatch `warden:voice` with `SUMMARY: spec-auditor output malformed`, print the returned line, print `RAW_REPORT` verbatim, skip to `(s)` branch.
-   - Dispatch prophet with `SUMMARY: <N> findings in spec` (or `spec is clean` if zero); print the returned line. Then print `RAW_REPORT` exactly as emitted.
+   - Parse with `<PROJECT_ROOT>/acid-prophet/claudecode/lib/parse-scryer-report.mjs`. If null: try `warden:voice` per the voice cadence with `SUMMARY: spec-auditor output malformed`, print `RAW_REPORT` verbatim, skip to `(s)` branch.
+   - Try `warden:voice` per the voice cadence with `SUMMARY: <N> findings in spec` (or `spec is clean` if zero). Then print `RAW_REPORT` exactly as emitted.
 4. Hand-off menu:
    ```
    (a) apply auto-fixes → patch spec, commit
@@ -36,7 +36,7 @@ Rigid audit gate. Match the user's language; keep technical identifiers unchange
    - `(a)`: apply each `autoFixes` entry via `apply-frontmatter-patch.mjs`. Commit: `git commit -m "docs(acid-prophet): spec-auditor auto-fixes"`. Never `--no-verify`. If no fixes: inform and return to menu.
    - `(o)`: print absolute spec path.
    - `(l)`: invoke `linear-devotee:consummate-project` with spec path.
-   - `(s)`: dispatch `warden:voice` with `SUMMARY: audit complete, user stopped`, print the returned line, exit.
+   - `(s)`: try `warden:voice` per the voice cadence with `SUMMARY: audit complete, user stopped`, then exit.
 
 ## Final Report
 
