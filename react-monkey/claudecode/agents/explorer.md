@@ -2,6 +2,7 @@
 name: explorer
 description: Explore a React codebase to discover design system components/tokens, data fetching patterns, and surrounding code. Returns a structured report used by the react-coder skill before implementation.
 model: haiku
+effort: low
 tools:
   - Bash
   - Read
