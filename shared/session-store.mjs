@@ -8,7 +8,8 @@ import path from 'node:path';
 const SHA_TRACKED_KEYS = new Set(['relevant_files', 'react-monkey.explorer_report']);
 
 export function storePath(sessionId, projectRoot) {
-  return path.join(projectRoot, '.claude', 'nuthouse', 'sessions', `${sessionId}.json`);
+  // path.basename strips any accidental path separators in the session id.
+  return path.join(projectRoot, '.claude', 'nuthouse', 'sessions', `${path.basename(sessionId)}.json`);
 }
 
 function getHeadSha(projectRoot) {
@@ -91,6 +92,10 @@ export function read(sessionId, projectRoot) {
  * Write a full session record (replacing the existing file).
  * Injects / updates _meta automatically.
  * No-op when sessionId is falsy.
+ *
+ * Note: git_sha reflects the sha at the time of this write, not the sha at which
+ * each individual key was populated. Per-key population shas live in _meta._shas
+ * and are managed by merge() — write() preserves them verbatim from the incoming data.
  */
 export function write(sessionId, projectRoot, data) {
   if (!sessionId) return;
