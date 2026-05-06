@@ -2,5 +2,6 @@
   "name": "git-gremlin",
   "description": "Git gremlin — delegates commit and PR creation to subagents, keeping diffs off your main context",
   "author": { "name": "g-bastianelli" },
-  "skills": "./claudecode/skills/"
+  "skills": "./claudecode/skills/",
+  "agents": ["./claudecode/agents/commit-drafter.md", "./claudecode/agents/pr-drafter.md"]
 }
